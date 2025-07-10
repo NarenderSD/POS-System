@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { Order } from './model'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   await connectToDatabase()
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get('id')
+  if (id) {
+    const order = await Order.findById(id)
+    return NextResponse.json(order)
+  }
   const orders = await Order.find().sort({ createdAt: -1 })
   return NextResponse.json(orders)
 }

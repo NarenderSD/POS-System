@@ -144,29 +144,29 @@ export default function StaffManagement() {
     }
   }
 
-  const handleAddStaff = () => {
+  // Add Staff (API + Waiter sync)
+  const handleAddStaff = async () => {
     if (newStaff.name && newStaff.role) {
-      const staffMember: Omit<Staff, "id"> = {
-        name: newStaff.name,
-        role: newStaff.role as Staff["role"],
-        isActive: true,
-        phone: newStaff.phone || "",
-        email: newStaff.email || "",
-        shift: newStaff.shift as Staff["shift"],
-        permissions: newStaff.permissions || [],
-        joiningDate: new Date(),
-        salary: newStaff.salary || 0,
-        performance: {
-          ordersServed: 0,
-          rating: 0,
-          tips: 0,
-        },
+      const res = await fetch('/api/staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newStaff),
+      })
+      const created = await res.json()
+      // If role is waiter, create in /api/waiters too
+      if (newStaff.role === 'waiter') {
+        await fetch('/api/waiters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newStaff.name,
+            phone: newStaff.phone,
+            staffId: created._id,
+            isActive: true,
+          }),
+        })
       }
-      const newStaffMember: Staff = {
-        id: `staff-${Date.now()}`,
-        ...staffMember,
-      }
-      setStaff([...staff, newStaffMember])
+      setIsAddDialogOpen(false)
       setNewStaff({
         name: "",
         role: "waiter",
@@ -176,8 +176,51 @@ export default function StaffManagement() {
         permissions: [],
         salary: 0,
       })
-      setIsAddDialogOpen(false)
+      // Refetch staff and waiters
+      fetch('/api/staff').then(r => r.json()).then(setStaff)
+      // Optionally: trigger a global refetch for waiters if needed
     }
+  }
+
+  // Update Staff (API + Waiter sync)
+  const handleUpdateStaff = async (id: string, data: Partial<Staff>) => {
+    await fetch('/api/staff', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _id: id, ...data }),
+    })
+    // If role is waiter, update in /api/waiters too
+    if (data.role === 'waiter' || (data.role === undefined && staff.find(s => s.id === id)?.role === 'waiter')) {
+      await fetch('/api/waiters', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId: id, ...data }),
+      })
+    }
+    // Refetch staff and waiters
+    fetch('/api/staff').then(r => r.json()).then(setStaff)
+    // Optionally: trigger a global refetch for waiters if needed
+  }
+
+  // Delete Staff (API + Waiter sync)
+  const handleDeleteStaff = async (id: string) => {
+    await fetch('/api/staff', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    // Also delete from /api/waiters if role is waiter
+    const staffMember = staff.find(s => s.id === id)
+    if (staffMember?.role === 'waiter') {
+      await fetch('/api/waiters', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId: id }),
+      })
+    }
+    // Refetch staff and waiters
+    fetch('/api/staff').then(r => r.json()).then(setStaff)
+    // Optionally: trigger a global refetch for waiters if needed
   }
 
   const getAttendanceForStaff = (staffId: string) => {
@@ -423,7 +466,7 @@ export default function StaffManagement() {
                 const attendanceRate = getAttendanceRate(member.id)
                 const avgHours = getAverageHours(member.id)
                 return (
-                  <TableRow key={member.id}>
+                  <TableRow key={member._id || member.id}>
                     <TableCell>
                       <div>
                         <div className="font-medium">{member.name}</div>

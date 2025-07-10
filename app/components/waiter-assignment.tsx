@@ -27,7 +27,7 @@ export default function WaiterAssignment({ orderId, tableId, onAssign, selectedW
   const availableWaiters = staff.filter((member) => member.role === "waiter" && member.isActive)
 
   const handleAssign = () => {
-    const waiter = availableWaiters.find((w) => w.id === selectedWaiter)
+    const waiter = availableWaiters.find((w) => w._id === selectedWaiter)
     if (selectedWaiter && waiter) {
       if (orderId) {
         assignWaiter(orderId, selectedWaiter)
@@ -59,13 +59,13 @@ export default function WaiterAssignment({ orderId, tableId, onAssign, selectedW
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {availableWaiters.map((waiter) => (
             <Card
-              key={waiter.id}
+              key={waiter._id}
               className={`cursor-pointer transition-all duration-200 ${
-                selectedWaiter === waiter.id
+                selectedWaiter === waiter._id
                   ? "border-green-500 bg-green-50 dark:bg-green-950"
                   : "hover:border-gray-300 dark:hover:border-gray-600"
               }`}
-              onClick={() => setSelectedWaiter(waiter.id)}
+              onClick={() => setSelectedWaiter(waiter._id)}
             >
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">

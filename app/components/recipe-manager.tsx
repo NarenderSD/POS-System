@@ -125,34 +125,15 @@ export default function RecipeManager() {
   const totalRevenue = recipes.reduce((sum, recipe) => sum + recipe.sellingPrice, 0)
   const averageRating = recipes.length > 0 ? recipes.reduce((sum, recipe) => sum + (recipe.rating || 0), 0) / recipes.length : 0
 
-  const handleAddRecipe = () => {
+  // Add Recipe (API)
+  const handleAddRecipe = async () => {
     if (newRecipe.name && newRecipe.category) {
-      const recipe: Recipe = {
-        id: Date.now().toString(),
-        name: newRecipe.name,
-        category: newRecipe.category,
-        description: newRecipe.description || "",
-        preparationTime: newRecipe.preparationTime || 0,
-        cookingTime: newRecipe.cookingTime || 0,
-        servings: newRecipe.servings || 1,
-        difficulty: newRecipe.difficulty || "medium",
-        ingredients: newRecipe.ingredients || [],
-        instructions: newRecipe.instructions || [],
-        nutritionInfo: newRecipe.nutritionInfo || {
-          calories: 0,
-          protein: 0,
-          carbs: 0,
-          fat: 0,
-          fiber: 0,
-        },
-        costPerServing: newRecipe.costPerServing || 0,
-        sellingPrice: newRecipe.sellingPrice || 0,
-        profitMargin: newRecipe.profitMargin || 0,
-        tags: newRecipe.tags || [],
-        isVeg: newRecipe.isVeg || true,
-        timesCooked: 0,
-      }
-      setRecipes([...recipes, recipe])
+      await fetch('/api/recipes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRecipe),
+      })
+      setIsAddDialogOpen(false)
       setNewRecipe({
         name: "",
         category: "",
@@ -176,8 +157,31 @@ export default function RecipeManager() {
         tags: [],
         isVeg: true,
       })
-      setIsAddDialogOpen(false)
+      // Refetch recipes
+      fetch('/api/recipes').then(r => r.json()).then(setRecipes)
     }
+  }
+
+  // Update Recipe (API)
+  const handleUpdateRecipe = async (id: string, data: Partial<Recipe>) => {
+    await fetch('/api/recipes', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _id: id, ...data }),
+    })
+    // Refetch recipes
+    fetch('/api/recipes').then(r => r.json()).then(setRecipes)
+  }
+
+  // Delete Recipe (API)
+  const handleDeleteRecipe = async (id: string) => {
+    await fetch('/api/recipes', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    // Refetch recipes
+    fetch('/api/recipes').then(r => r.json()).then(setRecipes)
   }
 
   const getDifficultyColor = (difficulty: string) => {

@@ -45,11 +45,52 @@ export default function InventoryManagement() {
     costPerUnit: 0,
     supplier: "",
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Offline queue for inventory actions
+  const [pendingInventory, setPendingInventory] = useState<any[]>([])
+  const [offline, setOffline] = useState(false)
 
   // Load sample inventory data
   useEffect(() => {
     fetch('/api/inventory').then(r => r.json()).then(setInventory)
   }, [])
+
+  // Load pending actions from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('pendingInventory')
+    if (saved) setPendingInventory(JSON.parse(saved))
+  }, [])
+
+  // Detect offline/online
+  useEffect(() => {
+    const handleOnline = () => setOffline(false)
+    const handleOffline = () => setOffline(true)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    setOffline(!navigator.onLine)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  // Auto-sync pending inventory actions
+  useEffect(() => {
+    if (!offline && pendingInventory.length > 0) {
+      (async () => {
+        for (const action of pendingInventory) {
+          try {
+            await fetch('/api/inventory', action)
+          } catch {}
+        }
+        setPendingInventory([])
+        localStorage.removeItem('pendingInventory')
+        fetch('/api/inventory').then(r => r.json()).then(setInventory)
+      })()
+    }
+  }, [offline, pendingInventory])
 
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,46 +103,108 @@ export default function InventoryManagement() {
   const outOfStockItems = inventory.filter(item => item.currentStock === 0)
   const totalInventoryValue = inventory.reduce((sum, item) => sum + (item.currentStock * item.costPerUnit), 0)
 
-  const handleAddItem = () => {
+  // Add Inventory Item (API or queue)
+  const handleAddItem = async () => {
     if (newItem.name && newItem.category && newItem.unit) {
-      const item: InventoryItem = {
-        id: Date.now().toString(),
-        name: newItem.name!,
-        category: newItem.category!,
-        currentStock: newItem.currentStock || 0,
-        minStock: newItem.minStock || 0,
-        maxStock: newItem.maxStock || 0,
-        unit: newItem.unit!,
-        costPerUnit: newItem.costPerUnit || 0,
-        supplier: newItem.supplier,
-        lastRestocked: new Date(),
-        expiryDate: newItem.expiryDate,
+      setLoading(true)
+      setError(null)
+      const action = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newItem),
       }
-      setInventory([...inventory, item])
-      setNewItem({
-        name: "",
-        category: "",
-        currentStock: 0,
-        minStock: 0,
-        maxStock: 0,
-        unit: "",
-        costPerUnit: 0,
-        supplier: "",
-      })
-      setIsAddDialogOpen(false)
+      if (offline) {
+        const updated = [...pendingInventory, action]
+        setPendingInventory(updated)
+        localStorage.setItem('pendingInventory', JSON.stringify(updated))
+        setLoading(false)
+        setIsAddDialogOpen(false)
+        setNewItem({
+          name: "",
+          category: "",
+          currentStock: 0,
+          minStock: 0,
+          maxStock: 0,
+          unit: "",
+          costPerUnit: 0,
+          supplier: "",
+        })
+        return
+      }
+      try {
+        await fetch('/api/inventory', action)
+        setIsAddDialogOpen(false)
+        setNewItem({
+          name: "",
+          category: "",
+          currentStock: 0,
+          minStock: 0,
+          maxStock: 0,
+          unit: "",
+          costPerUnit: 0,
+          supplier: "",
+        })
+        fetch('/api/inventory').then(r => r.json()).then(setInventory)
+      } catch (e: any) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
-  const handleUpdateStock = (itemId: string, newStock: number) => {
-    setInventory(inventory.map(item => 
-      item.id === itemId 
-        ? { ...item, currentStock: newStock, lastRestocked: new Date() }
-        : item
-    ))
+  // Update Inventory Stock (API or queue)
+  const handleUpdateStock = async (itemId: string, newStock: number) => {
+    const item = inventory.find(i => i.id === itemId)
+    if (!item) return
+    setLoading(true)
+    setError(null)
+    const action = {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...item, currentStock: newStock }),
+    }
+    if (offline) {
+      const updated = [...pendingInventory, action]
+      setPendingInventory(updated)
+      localStorage.setItem('pendingInventory', JSON.stringify(updated))
+      setLoading(false)
+      return
+    }
+    try {
+      await fetch('/api/inventory', action)
+      fetch('/api/inventory').then(r => r.json()).then(setInventory)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleDeleteItem = (itemId: string) => {
-    setInventory(inventory.filter(item => item.id !== itemId))
+  // Delete Inventory Item (API or queue)
+  const handleDeleteItem = async (itemId: string) => {
+    setLoading(true)
+    setError(null)
+    const action = {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: itemId }),
+    }
+    if (offline) {
+      const updated = [...pendingInventory, action]
+      setPendingInventory(updated)
+      localStorage.setItem('pendingInventory', JSON.stringify(updated))
+      setLoading(false)
+      return
+    }
+    try {
+      await fetch('/api/inventory', action)
+      fetch('/api/inventory').then(r => r.json()).then(setInventory)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const getStockStatus = (item: InventoryItem) => {

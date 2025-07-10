@@ -91,20 +91,15 @@ export default function ExpenseTracker() {
   const pendingExpenses = expenses.filter(exp => exp.status === "pending").reduce((sum, exp) => sum + exp.amount, 0)
   const overdueExpenses = expenses.filter(exp => exp.status === "overdue").reduce((sum, exp) => sum + exp.amount, 0)
 
-  const handleAddExpense = () => {
+  // Add Expense (API)
+  const handleAddExpense = async () => {
     if (newExpense.title && newExpense.amount && newExpense.category) {
-      const expense: Expense = {
-        id: Date.now().toString(),
-        title: newExpense.title,
-        amount: newExpense.amount,
-        category: newExpense.category,
-        date: new Date(),
-        description: newExpense.description,
-        paymentMethod: newExpense.paymentMethod || "cash",
-        status: newExpense.status || "paid",
-        vendor: newExpense.vendor,
-      }
-      setExpenses([...expenses, expense])
+      await fetch('/api/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newExpense),
+      })
+      setIsAddDialogOpen(false)
       setNewExpense({
         title: "",
         amount: 0,
@@ -112,12 +107,31 @@ export default function ExpenseTracker() {
         paymentMethod: "cash",
         status: "paid",
       })
-      setIsAddDialogOpen(false)
+      // Refetch expenses
+      fetch('/api/expenses').then(r => r.json()).then(setExpenses)
     }
   }
 
-  const handleDeleteExpense = (id: string) => {
-    setExpenses(expenses.filter(exp => exp.id !== id))
+  // Update Expense (API)
+  const handleUpdateExpense = async (id: string, data: Partial<Expense>) => {
+    await fetch('/api/expenses', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _id: id, ...data }),
+    })
+    // Refetch expenses
+    fetch('/api/expenses').then(r => r.json()).then(setExpenses)
+  }
+
+  // Delete Expense (API)
+  const handleDeleteExpense = async (id: string) => {
+    await fetch('/api/expenses', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    // Refetch expenses
+    fetch('/api/expenses').then(r => r.json()).then(setExpenses)
   }
 
   const getCategoryColor = (category: string) => {

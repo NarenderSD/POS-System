@@ -27,6 +27,7 @@ import { usePOS } from "../context/pos-context"
 import AnimatedCounter from "./animated-counter"
 import WaiterAssignment from "./waiter-assignment"
 import { useIsMobile } from "../../hooks/use-mobile"
+import OrderConfirmationPage from '../order-confirmation/[orderId]/page'
 
 export default function PremiumCartSidebar() {
   const router = useRouter()
@@ -55,6 +56,9 @@ export default function PremiumCartSidebar() {
   const [selectedWaiter, setSelectedWaiter] = useState("")
   const [selectedWaiterName, setSelectedWaiterName] = useState("")
   const [customer, setCustomer] = useState(null)
+  const [showBill, setShowBill] = useState(false)
+  const [billOrderId, setBillOrderId] = useState<string | null>(null)
+  const [billCountdown, setBillCountdown] = useState(30)
 
   // Fetch customer info when phone/email changes
   useEffect(() => {
@@ -83,6 +87,9 @@ export default function PremiumCartSidebar() {
       waiterAssigned: selectedWaiter,
       waiterName: selectedWaiterName,
     });
+    setBillOrderId(orderId)
+    setShowBill(true)
+    setBillCountdown(30)
     // Reset all customer fields after order placed
     setCustomerName("");
     setCustomerPhone("");
@@ -90,7 +97,17 @@ export default function PremiumCartSidebar() {
     setSpecialInstructions("");
     setSelectedWaiter("");
     setSelectedWaiterName("");
-    router.push(`/order-confirmation/${orderId}`);
+    // Start countdown for auto-redirect
+    const timer = setInterval(() => {
+      setBillCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          setShowBill(false)
+          router.push("/")
+        }
+        return prev - 1
+      })
+    }, 1000)
   };
 
   const handleWaiterAssign = (waiterId: string, waiterName: string) => {
@@ -113,6 +130,13 @@ export default function PremiumCartSidebar() {
   const isDineIn = orderType === "dine-in"
   const isReadyToOrder = cart.length > 0 && (!isDineIn || (currentTable && customerName.trim() && selectedWaiter))
   const isMobile = useIsMobile()
+
+  useEffect(() => {
+    if (showBill && billCountdown <= 0) {
+      setShowBill(false)
+      router.push('/')
+    }
+  }, [showBill, billCountdown])
 
   return (
     <div className={isMobile ? "relative h-full flex flex-col" : "flex w-96 lg:w-[28rem] flex-col border-l bg-background/95 backdrop-blur-sm dark:bg-background/95"}>
@@ -341,6 +365,14 @@ export default function PremiumCartSidebar() {
               {language === "hi" ? "कृपया टेबल चुनें" : "Please select a table"}
             </p>
           )}
+        </div>
+      )}
+      {/* Bill overlay/modal */}
+      {showBill && billOrderId && (
+        <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center w-screen h-screen">
+          <div className="w-full max-w-xl bg-white rounded-xl shadow-2xl p-0 flex flex-col items-center justify-center">
+            <OrderConfirmationPage orderId={billOrderId} showActions countdown={billCountdown} onBack={() => { setShowBill(false); router.push("/") }} />
+          </div>
         </div>
       )}
     </div>
