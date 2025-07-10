@@ -89,6 +89,23 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
     console.log(`Assigned waiter ${waiterName} to table ${table.number}`)
   }
 
+  const handleFinalizeBill = () => {
+    // Logic to finalize bill and clear table data
+    console.log(`Finalizing bill for table ${table.number}`)
+    // Example: update table status to available and clear customer/order data
+    updateTableStatus(table.id, "available")
+    // Clear customer and order data for this table
+    // This would typically involve a backend call to clear orders for the table
+    // For now, we'll just log it.
+  }
+
+  const handleDownloadBill = () => {
+    // Logic to download bill as PDF or print
+    console.log(`Downloading bill for table ${table.number}`)
+    // Example: window.print() or trigger a PDF download
+    // This would require a PDF generation library and potentially a backend endpoint
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -322,6 +339,9 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
                 {language === "hi" ? "ठीक करें" : "Mark as Fixed"}
               </Button>
             )}
+
+            <Button onClick={handleFinalizeBill} className="w-full mt-4" variant="success">Finalize Bill (Paid)</Button>
+            <Button onClick={handleDownloadBill} className="w-full mt-2" variant="outline">Download Bill</Button>
 
             <Button onClick={onClose} variant="outline" className="flex-1 bg-transparent">
               {language === "hi" ? "बंद करें" : "Close"}

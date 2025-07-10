@@ -291,22 +291,10 @@ export default function EnhancedTableManagement() {
               <Input type="number" value={newTable.capacity} onChange={e => setNewTable({ ...newTable, capacity: e.target.value })} required min={1} />
             </div>
             <div>
-              <Label>Location</Label>
+              <Label>Location <span className="text-xs text-muted-foreground">(optional)</span></Label>
               <Input value={newTable.location || ''} onChange={e => setNewTable({ ...newTable, location: e.target.value })} />
             </div>
-            <div>
-              <Label>Customer Name</Label>
-              <Input value={newTable.customerName || ''} onChange={e => setNewTable({ ...newTable, customerName: e.target.value })} />
-            </div>
-            <div>
-              <Label>Customer Phone</Label>
-              <Input value={newTable.customerPhone || ''} onChange={e => setNewTable({ ...newTable, customerPhone: e.target.value })} />
-            </div>
-            <div>
-              <Label>Customer Email</Label>
-              <Input value={newTable.customerEmail || ''} onChange={e => setNewTable({ ...newTable, customerEmail: e.target.value })} />
-            </div>
-            <Button type="submit" className="w-full">{language === "hi" ? "जोड़ें" : "Add"}</Button>
+            <Button type="submit" className="w-full">Add</Button>
           </form>
         </DialogContent>
       </Dialog>

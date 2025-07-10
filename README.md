@@ -1,4 +1,18 @@
-# 🍃✨ Apna POS – The Ultimate Restaurant & Cafe Management System
+<div align="center">
+  <h1>🌟 Apna POS System 🌟</h1>
+  <h3><em>Premium, Animated, Real-Time Point of Sale for Cafes & Restaurants</em></h3>
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=22C55E&center=true&vCenter=true&width=435&lines=Fast.+Flexible.+Future-Ready."/>
+  <br/>
+  <a href="https://github.com/NarenderSD/POS-System"><img src="https://img.shields.io/badge/GitHub-Repo-181717?logo=github&style=for-the-badge" /></a>
+  <a href="https://www.linkedin.com/in/narendersingh1/"><img src="https://img.shields.io/badge/LinkedIn-Narender%20Singh-0A66C2?logo=linkedin&style=for-the-badge" /></a>
+</div>
+
+
+
+<div align="center">
+  <h2>🍃✨ Apna POS</h2>
+  <h5><em>The Ultimate Restaurant & Cafe Management System</em></h5>
+</div>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-15.2.4-black?logo=nextdotjs&style=for-the-badge" />
@@ -11,22 +25,10 @@
   <img src="https://img.shields.io/badge/Offline_Mode-Supported-blueviolet?style=for-the-badge&logo=wifi" />
   <img src="https://img.shields.io/badge/AI_Ready-Futureproof-ffb300?style=for-the-badge&logo=brain" />
   <img src="https://img.shields.io/badge/Mobile_First-Responsive-0ea5e9?style=for-the-badge&logo=smartphone" />
+  <img src="https://img.shields.io/badge/Premium_SaaS-Product_Level-ff69b4?style=for-the-badge&logo=star" />
 </p>
 
----
 
-<div align="center">
-  <h1>🌟 Apna POS 🌟</h1>
-  <h3><em>Premium, Animated, Real-Time Point of Sale for Cafes & Restaurants</em></h3>
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=22C55E&center=true&vCenter=true&width=435&lines=Fast.+Flexible.+Future-Ready."/>
-</div>
-
----
-
-<!-- Animated Divider -->
-<p align="center">
-  <img src="https://raw.githubusercontent.com/aleen42/badges/master/src/animation.svg" width="100%"/>
-</p>
 
 ## 🪔✨ महिमा मंडल (The Glory of Apna POS)
 
@@ -35,7 +37,7 @@
 > Apna POS: आपके व्यवसाय की असली शान!<br>
 > <b>— The Crown Jewel of Restaurant Tech</b>"
 
----
+
 
 ## 🚀 Product Overview
 
@@ -46,13 +48,9 @@
 - 🌐 **Offline Mode & Auto-Sync**
 - 📊 **Business Analytics**
 - 🏆 **Customer Loyalty & Staff Performance**
+- 🧑‍💻 **Developer-Grade API & Extensibility**
 
----
 
-<!-- Animated Section Divider -->
-<p align="center">
-  <img src="https://raw.githubusercontent.com/aleen42/badges/master/src/animation.svg" width="100%"/>
-</p>
 
 ## ✨ Premium Features
 
@@ -69,44 +67,38 @@
 | 🧑‍🎨 Custom Branding | 🧑‍🔬 Advanced Reporting | 🏦 Financial Exports | 🧪 Automated Testing |
 | 🧑‍⚖️ Audit Logs | 🧑‍🤝‍🧑 CRM Integration | 🏪 Franchise Support | 🧑‍💻 Dev API Docs |
 
----
 
-<!-- Animated Divider -->
-<p align="center">
-  <img src="https://raw.githubusercontent.com/aleen42/badges/master/src/animation.svg" width="100%"/>
-</p>
 
-## 🎬 Live Demo, Screenshots & Video Tour
+## 🛠️ Tech Stack
 
-> **[Live Demo Coming Soon!](#)**
+| Layer | Tech | Icon |
+|:-----:|:-----|:----:|
+| Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui | ⚛️ 🟦 🎨 |
+| Backend | Next.js API routes, MongoDB (Mongoose) | 🟢 🗄️ |
+| State | React Context API | 🧠 |
+| Charts | Recharts | 📊 |
+| Icons | Lucide React | 🖼️ |
+| Notifications | Real-time, animated | 🔔 |
+| Offline | Local queue + auto-sync | 📡 |
+| Testing | Jest, React Testing Library | 🧪 |
+| CI/CD | GitHub Actions, Vercel | 🚀 |
+| Monitoring | Sentry, LogRocket | 🛡️ |
+| DevOps | Docker, Vercel, GitHub Actions | 🐳 ⚙️ |
 
-| ![POS Dashboard](https://placehold.co/600x300?text=POS+Dashboard+GIF) | ![Order Flow](https://placehold.co/600x300?text=Order+Flow+GIF) |
-|:---:|:---:|
-| _Animated Dashboard_ | _Order Placement Animation_ |
 
-> _Replace above URLs with your real GIFs/screenshots for production._
 
-### 🎥 Video Tour
+## 🧭 How it Works
 
-> _[Video Tour Placeholder: Insert Loom/YouTube link here]_ 
+1. 🏪 **Table Created:** Add a table with number, capacity, and (optional) location.
+2. 🧑‍💼 **Waiter Assigns Table:** Waiter selects table and starts order.
+3. 🍽️ **Order Placed:** Items added, customizations, and special instructions.
+4. 👨‍🍳 **Kitchen Display:** Orders appear live in kitchen view.
+5. 💳 **Bill Generated:** Bill is created instantly after order placement.
+6. 🖨️ **Print/Download Bill:** Bill can be viewed, printed, or downloaded for each table.
+7. ✅ **Finalize Bill:** Mark bill as paid, table resets for new customer.
+8. 🔄 **Real-Time Updates:** All actions update instantly for all users.
 
----
 
-## 🏆 Why Choose Apna POS?
-
-- **Lightning Fast:** Real-time updates, no lag, instant sync.
-- **100% Real Data:** All data (orders, tables, staff, customers) in MongoDB. No demo or localStorage data.
-- **Offline-First:** Works even without internet. Orders auto-sync when online.
-- **Animated & Modern UI:** Premium, animated, and mobile-friendly interface.
-- **Business-Driven:** Analytics, loyalty, staff, and expense features for real growth.
-- **Secure & Scalable:** Role-based access, cloud-ready, and production-grade.
-- **Easy Integration:** API-first, modular, and extensible for any workflow.
-- **Better Than Others:** No more clunky, outdated POS—this is built for 2024 and beyond!
-- **AI-Ready:** Future-proof architecture for AI/ML integrations.
-- **Multi-Branch:** Ready for franchises and chains.
-- **Fun to Use:** Staff and customers love the experience!
-
----
 
 ## 💡 Use Cases
 
@@ -121,58 +113,7 @@
 - **Cafes & QSRs:** Fast, touch-friendly, and mobile-first.
 - **Enterprise Groups:** Custom workflows, integrations, and analytics.
 
----
 
-## 🛠️ Tech Stack
-
-- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend:** Next.js API routes, MongoDB (Mongoose)
-- **State:** React Context API
-- **Charts:** Recharts
-- **Icons:** Lucide React
-- **Notifications:** Real-time, animated
-- **Offline:** Local queue + auto-sync
-- **Testing:** Jest, React Testing Library
-- **CI/CD:** GitHub Actions, Vercel
-- **Monitoring:** Sentry, LogRocket
-- **DevOps:** Docker, Vercel, GitHub Actions
-
----
-
-## 🏗️ Setup & Installation
-
-```bash
-# 1. Clone the repository
-$ git clone <repository-url>
-$ cd pos-system
-
-# 2. Install dependencies
-$ pnpm install
-
-# 3. Configure environment
-$ cp .env.example .env.local
-# Edit .env.local for your MongoDB URI and settings
-
-# 4. Run development server
-$ pnpm dev
-
-# 5. Build for production
-$ pnpm build && pnpm start
-```
-
----
-
-## ⚙️ Configuration
-
-Create a `.env.local` file:
-```env
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/pos
-NEXT_PUBLIC_RESTAURANT_NAME="Satvik Cafe"
-NEXT_PUBLIC_GST_RATE=18
-NEXT_PUBLIC_SERVICE_CHARGE=10
-```
-
----
 
 ## 🗄️ Data Model & API
 
@@ -196,7 +137,7 @@ NEXT_PUBLIC_SERVICE_CHARGE=10
 | `/api/recipes` | GET/POST/PUT/DELETE | Manage recipes |
 | `/api/inventory` | GET/POST/PUT/DELETE | Manage inventory |
 
----
+
 
 ## 📈 Business Impact
 
@@ -209,7 +150,7 @@ NEXT_PUBLIC_SERVICE_CHARGE=10
 - 🧑‍💼 **Empowers Staff:** Training, performance, and happiness
 - 🧑‍🍳 **Delights Customers:** Fast, accurate, and personal service
 
----
+
 
 ## 🛡️ Security & Compliance
 
@@ -221,7 +162,7 @@ NEXT_PUBLIC_SERVICE_CHARGE=10
 - 🧑‍💻 **Penetration Tested**
 - 🧑‍🔬 **Regular Security Audits**
 
----
+
 
 ## 🧩 Customization & Extensibility
 
@@ -233,7 +174,7 @@ NEXT_PUBLIC_SERVICE_CHARGE=10
 - 🧑‍🎨 **White-label Ready**
 - 🧑‍💼 **Custom Reports & Dashboards**
 
----
+
 
 ## ⚡ Performance & Scalability
 
@@ -243,7 +184,7 @@ NEXT_PUBLIC_SERVICE_CHARGE=10
 - 📈 **Load Tested:** 1000+ concurrent users
 - 🧑‍💻 **Zero Downtime Deploys**
 
----
+
 
 ## 🌏 Localization & Accessibility
 
@@ -254,7 +195,7 @@ NEXT_PUBLIC_SERVICE_CHARGE=10
 - 🧑‍🦯 **Color Blind Modes**
 - 🧑‍🦼 **Accessible Animations**
 
----
+
 
 ## 🧑‍💻 Contribution
 
@@ -264,13 +205,13 @@ NEXT_PUBLIC_SERVICE_CHARGE=10
 4. Test thoroughly
 5. Submit a pull request
 
----
+
 
 ## 📝 Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md) for version history, new features, and bug fixes.
 
----
+
 
 ## ❓ FAQ & Troubleshooting
 
@@ -292,7 +233,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history, new features, and bug fi
 **Q: How do I enable/disable offline mode?**
 - Offline mode is automatic. You can see status in the header.
 
----
+
 
 ## 🗺️ Roadmap
 
@@ -305,40 +246,29 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history, new features, and bug fi
 - [ ] Multi-branch analytics dashboard
 - [ ] More payment integrations
 - [ ] Plug-in marketplace
-- [ ] Voice order support
-- [ ] AR/VR menu integration
 
----
+
 
 ## 🏅 Testimonials
 
 > _"Apna POS ने हमारे रेस्टोरेंट की स्पीड और सर्विस दोनों बदल दी!"_  
-> — **Chef Ramesh, Satvik Cafe**
+> — **Ramesh**
 
 > _"The animated UI is a delight for staff and customers alike!"_  
-> — **Priya, Cafe Manager**
+> — **Priya**
 
 > _"Offline mode saved us during a network outage—no lost orders!"_  
-> — **Vikram, Franchise Owner**
+> — **Vikram**
 
 > _"The best POS for multi-branch chains—analytics are next level!"_  
-> — **Amit, QSR Group**
+> — **Amit**
 
 > _"Integration with our CRM and loyalty program was seamless."_  
-> — **Sonia, Operations Head**
+> — **Sonia**
 
 > _[Add your testimonial here!](#)_
 
----
 
-## 🏆 Awards & Recognition
-
-- 🥇 **Best Restaurant Tech 2025** — FoodTech Awards
-- 🏅 **Top 10 POS Systems** — SaaS Review
-- 🏆 **Innovation in UI/UX** — DesignX
-- 🏅 **Best Offline-First App** — CloudApps
-
----
 
 ## 👥 Meet the Team
 
@@ -347,15 +277,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history, new features, and bug fi
 | Narender Singh | Founder, Architect, Lead Dev | 👑 🧑‍💻 |
 | [Add your name!] | Contributor | 🚀 |
 
----
 
-## 📰 Press & Media
-
-- ["Apna POS sets new standard for restaurant tech"](#)
-- ["Offline-first POS wins hearts in India"](#)
-- ["Animated UI/UX: The future of POS"](#)
-
----
 
 ## 🤩 Fun Facts
 
@@ -365,18 +287,15 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history, new features, and bug fi
 - 🛡️ 100% uptime in last 6 months
 - 🧑‍💻 Built with ❤️ by foodies for foodies
 
----
+
 
 ## 🌠 Vision for the Future
 
 - AI-powered menu recommendations
-- Voice and gesture-based ordering
-- AR/VR immersive menu experiences
-- Blockchain-based loyalty and payments
 - Global multi-currency, multi-language support
 - Open plug-in marketplace for 3rd party integrations
 
----
+
 
 ## 🏅 Credits
 
@@ -384,39 +303,36 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history, new features, and bug fi
 - [Contributors](./CONTRIBUTORS.md)
 - Special thanks to the open-source community
 
----
+
 
 ## 🛡️ License
 
 This project is licensed under the **MIT License**. See [LICENSE](./LICENSE) for details.
 
----
+
 
 ## 📞 Contact & Support
 
-- For support, issues, or feature requests, open an [issue](https://github.com/NarenderSD) or email: **narendersingh2028@gmail.com**
-- For business inquiries, contact via LinkedIn: [Narender Singh](https://www.linkedin.com/in/narendersingh1)
+- For support, issues, or feature requests, open an [issue](https://github.com/NarenderSD/POS-System/issues) or email: **narendersingh2028@gmail.com**
+- For business inquiries, contact via LinkedIn: [Narender Singh](https://www.linkedin.com/in/narendersingh1/)
 
----
 
-<!-- Animated Divider -->
-<p align="center">
-  <img src="https://raw.githubusercontent.com/aleen42/badges/master/src/animation.svg" width="100%"/>
-</p>
 
 <div align="center">
   <h2>👑 Built by Narender Singh 👑</h2>
   <pre>
-   ███╗   ██╗ █████╗ ██████╗ ███████╗██████╗ ███████╗██████╗ 
-   ████╗  ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝██╔══██╗
-   ██╔██╗ ██║███████║██████╔╝█████╗  ██████╔╝█████╗  ██████╔╝
-   ██║╚██╗██║██╔══██║██╔══██╗██╔══╝  ██╔══██╗██╔══╝  ██╔══██╗
-   ██║ ╚████║██║  ██║██║  ██║███████╗██║  ██║███████╗██║  ██║
-   ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+███╗   ██╗ █████╗ ██████╗ ███████╗███╗   ██╗██████╗ ███████╗██████╗ 
+████╗  ██║██╔══██╗██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝██╔══██╗
+██╔██╗ ██║███████║██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██████╔╝
+██║╚██╗██║██╔══██║██╔══██╗██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗
+██║ ╚████║██║  ██║██║  ██║███████╗██║ ╚████║██████╔╝███████╗██║  ██║
+╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
   </pre>
   <p>
     <img src="https://img.shields.io/badge/Built%20with%20❤️%20by-Narender%20Singh-ff69b4?style=for-the-badge" />
     <br/>
     <b>Premium. Professional. Future-Ready.</b>
+    <br/>
+    <a href="https://github.com/NarenderSD/POS-System">GitHub</a> | <a href="https://www.linkedin.com/in/narendersingh1/">LinkedIn</a>
   </p>
 </div> 
