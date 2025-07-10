@@ -48,74 +48,7 @@ export default function InventoryManagement() {
 
   // Load sample inventory data
   useEffect(() => {
-    const sampleInventory: InventoryItem[] = [
-      {
-        id: "1",
-        name: "Basmati Rice",
-        category: "grains",
-        currentStock: 50,
-        minStock: 10,
-        maxStock: 100,
-        unit: "kg",
-        costPerUnit: 120,
-        supplier: "ABC Suppliers",
-        lastRestocked: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000),
-      },
-      {
-        id: "2",
-        name: "Paneer",
-        category: "dairy",
-        currentStock: 5,
-        minStock: 10,
-        maxStock: 50,
-        unit: "kg",
-        costPerUnit: 400,
-        supplier: "Fresh Dairy Co.",
-        lastRestocked: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-      {
-        id: "3",
-        name: "Tomatoes",
-        category: "vegetables",
-        currentStock: 20,
-        minStock: 5,
-        maxStock: 30,
-        unit: "kg",
-        costPerUnit: 40,
-        supplier: "Local Market",
-        lastRestocked: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        expiryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-      },
-      {
-        id: "4",
-        name: "Ghee",
-        category: "oils",
-        currentStock: 8,
-        minStock: 5,
-        maxStock: 20,
-        unit: "liters",
-        costPerUnit: 200,
-        supplier: "Pure Ghee Co.",
-        lastRestocked: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-      },
-      {
-        id: "5",
-        name: "Spices Mix",
-        category: "spices",
-        currentStock: 2,
-        minStock: 5,
-        maxStock: 15,
-        unit: "kg",
-        costPerUnit: 300,
-        supplier: "Spice World",
-        lastRestocked: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-      },
-    ]
-    setInventory(sampleInventory)
+    fetch('/api/inventory').then(r => r.json()).then(setInventory)
   }, [])
 
   const filteredInventory = inventory.filter(item => {

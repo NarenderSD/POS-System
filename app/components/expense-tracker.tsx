@@ -74,74 +74,8 @@ export default function ExpenseTracker() {
 
   // Initialize sample data
   useEffect(() => {
-    const sampleExpenses: Expense[] = [
-      {
-        id: "1",
-        title: "Vegetables Purchase",
-        amount: 5000,
-        category: "ingredients",
-        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        description: "Fresh vegetables for the week",
-        paymentMethod: "cash",
-        status: "paid",
-        vendor: "Local Market",
-      },
-      {
-        id: "2",
-        title: "Electricity Bill",
-        amount: 8000,
-        category: "utilities",
-        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        description: "Monthly electricity bill",
-        paymentMethod: "bank_transfer",
-        status: "paid",
-        vendor: "State Electricity Board",
-      },
-      {
-        id: "3",
-        title: "Kitchen Equipment Repair",
-        amount: 15000,
-        category: "maintenance",
-        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        description: "Oven and refrigerator repair",
-        paymentMethod: "card",
-        status: "pending",
-        vendor: "Tech Solutions",
-      },
-      {
-        id: "4",
-        title: "Staff Salary - March",
-        amount: 45000,
-        category: "salary",
-        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        description: "Monthly salary for all staff",
-        paymentMethod: "bank_transfer",
-        status: "paid",
-        vendor: "Staff Payments",
-      },
-      {
-        id: "5",
-        title: "Restaurant License Renewal",
-        amount: 12000,
-        category: "licenses",
-        date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-        description: "Annual license renewal",
-        paymentMethod: "upi",
-        status: "overdue",
-        vendor: "Municipal Corporation",
-      },
-    ]
-
-    const sampleBudgets: Budget[] = [
-      { category: "ingredients", amount: 50000, spent: 25000, remaining: 25000 },
-      { category: "utilities", amount: 15000, spent: 12000, remaining: 3000 },
-      { category: "salary", amount: 100000, spent: 45000, remaining: 55000 },
-      { category: "maintenance", amount: 20000, spent: 15000, remaining: 5000 },
-      { category: "marketing", amount: 10000, spent: 5000, remaining: 5000 },
-    ]
-
-    setExpenses(sampleExpenses)
-    setBudgets(sampleBudgets)
+    fetch('/api/expenses').then(r => r.json()).then(setExpenses)
+    fetch('/api/budgets').then(r => r.json()).then(setBudgets)
   }, [])
 
   const filteredExpenses = expenses.filter(expense => {

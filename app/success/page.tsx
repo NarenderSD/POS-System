@@ -38,8 +38,8 @@ export default function SuccessPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-md py-8">
-      <div className="rounded-lg border p-6 print:border-none bg-white">
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-0">
+      <div className="w-full max-w-md rounded-lg border p-4 sm:p-6 print:border-none bg-white shadow-md overflow-auto" style={{maxHeight: '90vh'}}>
         <div className="mb-6 flex items-center justify-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
             <Check className="h-6 w-6 text-green-600" />

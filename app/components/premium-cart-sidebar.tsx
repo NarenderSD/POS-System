@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   Minus,
@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePOS } from "../context/pos-context"
 import AnimatedCounter from "./animated-counter"
 import WaiterAssignment from "./waiter-assignment"
+import { useIsMobile } from "../../hooks/use-mobile"
 
 export default function PremiumCartSidebar() {
   const router = useRouter()
@@ -53,6 +54,16 @@ export default function PremiumCartSidebar() {
   const [paymentMethod, setPaymentMethod] = useState("cash")
   const [selectedWaiter, setSelectedWaiter] = useState("")
   const [selectedWaiterName, setSelectedWaiterName] = useState("")
+  const [customer, setCustomer] = useState(null)
+
+  // Fetch customer info when phone/email changes
+  useEffect(() => {
+    if (customerPhone || customerEmail) {
+      fetch(`/api/customers?phone=${customerPhone}&email=${customerEmail}`)
+        .then(r => r.json())
+        .then(data => setCustomer(data))
+    }
+  }, [customerPhone, customerEmail])
 
   const serviceCharge = cartTotal * serviceChargeRate
   const tax = (cartTotal + serviceCharge) * taxRate
@@ -63,14 +74,22 @@ export default function PremiumCartSidebar() {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
     const orderId = await createOrder({
-      customerName: customerName.trim(),
-      customerPhone: customerPhone.trim(),
-      customerEmail: customerEmail.trim(),
+      customerId: customer?._id,
+      customerName: customer?.name || customerName,
+      customerPhone: customer?.phone || customerPhone,
+      customerEmail: customer?.email || customerEmail,
       paymentMethod,
       specialInstructions: specialInstructions.trim(),
       waiterAssigned: selectedWaiter,
       waiterName: selectedWaiterName,
     });
+    // Reset all customer fields after order placed
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerEmail("");
+    setSpecialInstructions("");
+    setSelectedWaiter("");
+    setSelectedWaiterName("");
     router.push(`/order-confirmation/${orderId}`);
   };
 
@@ -93,9 +112,10 @@ export default function PremiumCartSidebar() {
 
   const isDineIn = orderType === "dine-in"
   const isReadyToOrder = cart.length > 0 && (!isDineIn || (currentTable && customerName.trim() && selectedWaiter))
+  const isMobile = useIsMobile()
 
   return (
-    <div className="flex w-96 lg:w-[28rem] flex-col border-l bg-background/95 backdrop-blur-sm dark:bg-background/95">
+    <div className={isMobile ? "relative h-full flex flex-col" : "flex w-96 lg:w-[28rem] flex-col border-l bg-background/95 backdrop-blur-sm dark:bg-background/95"}>
       {/* Header */}
       <div className="flex items-center justify-between border-b p-2 sm:p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
         <h2 className="flex items-center text-base sm:text-lg font-semibold text-green-800 dark:text-green-300">
@@ -136,7 +156,7 @@ export default function PremiumCartSidebar() {
                 </SelectTrigger>
                 <SelectContent>
                   {availableTables.map((table) => (
-                <SelectItem key={table.id} value={table.number} className="text-xs">
+                <SelectItem key={table._id || table.id || table.number} value={table.number} className="text-xs">
                   {table.number} - {table.capacity} {language === "hi" ? "सीटें" : "seats"}
                     </SelectItem>
                   ))}
@@ -155,7 +175,7 @@ export default function PremiumCartSidebar() {
       </div>
 
       {/* Cart Items */}
-      <div className="flex-1 overflow-auto p-2 sm:p-4 custom-scrollbar">
+      <div className={isMobile ? "flex-1 overflow-y-auto p-2 sm:p-4 custom-scrollbar pb-40" : "flex-1 overflow-auto p-2 sm:p-4 custom-scrollbar"}>
         {cart.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center py-12">
             <div className="text-6xl mb-4">🛒</div>
@@ -280,7 +300,7 @@ export default function PremiumCartSidebar() {
 
       {/* Checkout Section */}
       {cart.length > 0 && (
-        <div className="border-t p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+        <div className={isMobile ? "fixed bottom-0 left-0 w-full z-50 border-t p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950" : "border-t p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950"}>
           <div className="space-y-3 mb-4">
             <div className="flex justify-between text-sm">
               <span>{language === "hi" ? "उप-योग" : "Subtotal"}</span>
@@ -302,6 +322,12 @@ export default function PremiumCartSidebar() {
               </span>
             </div>
           </div>
+          {customer && (
+            <div className="mb-2">
+              <div>Loyalty Points: <span className="font-semibold">{customer.loyaltyPoints}</span></div>
+              <div>Membership: <span className="font-semibold capitalize">{customer.membershipTier}</span></div>
+            </div>
+          )}
           <Button
             className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3"
             size="lg"

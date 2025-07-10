@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
 import type { CartItem, Product, Order, Table, Staff, Customer, Notification } from "../types"
+import { toast } from "@/components/ui/use-toast"
 
 interface POSContextType {
   // Cart Management
@@ -88,6 +89,13 @@ interface POSContextType {
   setTaxRate: (rate: number) => void
   loyaltyPointsRate: number
   setLoyaltyPointsRate: (rate: number) => void
+  offline: boolean
+  setOffline: (offline: boolean) => void
+  pendingOrders: Order[]
+  setPendingOrders: (orders: Order[]) => void
+  addTable: (data: Omit<Table, "id">) => void
+  updateTable: (id: string, data: Partial<Table>) => void
+  deleteTable: (id: string) => void
 }
 
 const POSContext = createContext<POSContextType | undefined>(undefined)
@@ -118,6 +126,10 @@ export function POSProvider({ children }: { children: ReactNode }) {
   const [serviceChargeRate, setServiceChargeRate] = useState(0.1) // 10%
   const [taxRate, setTaxRate] = useState(0.18) // 18% GST
   const [loyaltyPointsRate, setLoyaltyPointsRate] = useState(0.01) // 1% of bill amount
+  const [offline, setOffline] = useState(false)
+  const [pendingOrders, setPendingOrders] = useState([])
+  const [tables, setTables] = useState<Table[]>([])
+  const [staff, setStaff] = useState<Staff[]>([])
 
   // Only one feature view can be active at a time
   const setFeatureView = (view: string) => {
@@ -146,180 +158,117 @@ export function POSProvider({ children }: { children: ReactNode }) {
   const setIsReportsView = (val: boolean) => setFeatureView(val ? "reports" : "none")
   const setIsStaffProfileView = (val: boolean) => setFeatureView(val ? "staffProfile" : "none")
 
-  // Initialize tables (20 tables for a medium restaurant)
-  const [tables, setTables] = useState<Table[]>(
-    Array.from({ length: 20 }, (_, i) => ({
-      id: i + 1,
-      number: `T${(i + 1).toString().padStart(2, "0")}`,
-      capacity: [2, 4, 6, 8][Math.floor(Math.random() * 4)],
-      status: "available",
-      lastCleaned: new Date(),
-    })),
-  )
-
-  // Initialize staff
-  const [staff, setStaff] = useState<Staff[]>(() => {
-    const savedStaff = typeof window !== 'undefined' ? localStorage.getItem("satvik-pos-staff") : null;
-    if (savedStaff) {
-      try {
-        return JSON.parse(savedStaff)
-      } catch {
-        // fallback to default
-      }
-    }
-    return [
-    {
-      id: "staff-1",
-      name: "Rajesh Kumar",
-      role: "manager",
-      isActive: true,
-      phone: "+91 98765 43210",
-      shift: "morning",
-      permissions: ["all"],
-    },
-    {
-      id: "staff-2",
-      name: "Priya Sharma",
-      role: "cashier",
-      isActive: true,
-      phone: "+91 98765 43211",
-      shift: "morning",
-      permissions: ["orders", "payments"],
-    },
-    {
-      id: "staff-3",
-      name: "Amit Singh",
-      role: "waiter",
-      isActive: true,
-      phone: "+91 98765 43212",
-      shift: "morning",
-      permissions: ["orders", "tables"],
-    },
-    {
-      id: "staff-4",
-      name: "Sunita Devi",
-      role: "kitchen",
-      isActive: true,
-      phone: "+91 98765 43213",
-      shift: "morning",
-      permissions: ["kitchen"],
-    },
-    ]
-  })
-
-  // Persist staff to localStorage
+  // Fetch all data from API on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem("satvik-pos-staff", JSON.stringify(staff))
-    }
-  }, [staff])
+    fetch('/api/tables').then(r => r.json()).then(setTables)
+    fetch('/api/staff').then(r => r.json()).then(setStaff)
+    fetch('/api/customers').then(r => r.json()).then(setCustomers)
+    fetch('/api/orders').then(r => r.json()).then(setOrders)
+  }, [])
 
-  // Load data from localStorage
+  // On mount, load pendingOrders from localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem("satvik-pos-cart")
-    const savedTables = localStorage.getItem("satvik-pos-tables")
-    const savedCustomers = localStorage.getItem("satvik-pos-customers")
-    const savedSettings = localStorage.getItem("satvik-pos-settings")
+    const saved = localStorage.getItem('pendingOrders')
+    if (saved) setPendingOrders(JSON.parse(saved))
+  }, [])
 
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart))
-      } catch (error) {
-        console.error("Failed to parse cart:", error)
-      }
+  // Try to sync pending orders when online
+  useEffect(() => {
+    if (!offline && pendingOrders.length > 0) {
+      (async () => {
+        for (const order of pendingOrders) {
+          try {
+            await fetch('/api/orders', { method: 'POST', body: JSON.stringify(order) })
+          } catch {}
+        }
+        setPendingOrders([])
+        localStorage.removeItem('pendingOrders')
+        toast({ title: 'Orders synced', description: 'Offline orders have been uploaded.' })
+      })()
     }
+  }, [offline, pendingOrders])
 
-    if (savedTables) {
-      try {
-        const parsedTables = JSON.parse(savedTables)
-        setTables(
-          parsedTables.map((table: any) => ({
-            ...table,
-            lastCleaned: table.lastCleaned ? new Date(table.lastCleaned) : new Date(),
-            reservationTime: table.reservationTime ? new Date(table.reservationTime) : undefined,
-          })),
-        )
-      } catch (error) {
-        console.error("Failed to parse tables:", error)
-      }
-    }
-
-    if (savedCustomers) {
-      try {
-        const parsedCustomers = JSON.parse(savedCustomers)
-        setCustomers(
-          parsedCustomers.map((customer: any) => ({
-            ...customer,
-            lastVisit: new Date(customer.lastVisit),
-          })),
-        )
-      } catch (error) {
-        console.error("Failed to parse customers:", error)
-      }
-    }
-
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings)
-        setTheme(settings.theme || "light")
-        setLanguage(settings.language || "en")
-        setSoundEnabled(settings.soundEnabled !== false)
-        setServiceChargeRate(settings.serviceChargeRate || 0.1)
-        setTaxRate(settings.taxRate || 0.18)
-        setLoyaltyPointsRate(settings.loyaltyPointsRate || 0.01)
-        setOrderCounter(settings.orderCounter || 1001)
-      } catch (error) {
-        console.error("Failed to parse settings:", error)
-      }
+  // Detect offline/online
+  useEffect(() => {
+    const handleOnline = () => setOffline(false)
+    const handleOffline = () => setOffline(true)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    setOffline(!navigator.onLine)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
     }
   }, [])
 
-  // Save to localStorage
+  // Persist currentStaff/waiter in localStorage
   useEffect(() => {
-    localStorage.setItem("satvik-pos-cart", JSON.stringify(cart))
-  }, [cart])
+    const savedStaff = localStorage.getItem('currentStaff')
+    if (savedStaff) setCurrentStaff(JSON.parse(savedStaff))
+  }, [])
+  useEffect(() => {
+    if (currentStaff) localStorage.setItem('currentStaff', JSON.stringify(currentStaff))
+  }, [currentStaff])
 
-  // Fetch orders from API
-  const fetchOrders = async () => {
-    const res = await fetch("/api/orders")
-    if (!res.ok) throw new Error("Failed to fetch orders")
-    const data = await res.json()
-    // Parse createdAt and updatedAt as Date objects
-    const parsed = data.map((order: any) => ({
-      ...order,
-      createdAt: new Date(order.createdAt),
-      updatedAt: new Date(order.updatedAt),
-    }))
-    setOrders(parsed)
+  // CRUD operations for tables
+  const addTable = async (data: Omit<Table, "id">) => {
+    const res = await fetch('/api/tables', { method: 'POST', body: JSON.stringify(data) })
+    const newTable = await res.json()
+    setTables(tables => [...tables, newTable])
+  }
+  const updateTable = async (id: string, data: Partial<Table>) => {
+    const res = await fetch('/api/tables', { method: 'PUT', body: JSON.stringify({ _id: id, ...data }) })
+    const updated = await res.json()
+    setTables(tables => tables.map(t => t._id === id ? updated : t))
+  }
+  const deleteTable = async (id: string) => {
+    await fetch('/api/tables', { method: 'DELETE', body: JSON.stringify({ id }) })
+    setTables(tables => tables.filter(t => t._id !== id))
   }
 
-  useEffect(() => {
-    fetchOrders()
-  }, [])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchOrders()
-      // If you have a fetchTables function, call it here as well
-      // fetchTables()
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Remove localStorage for orders
-  // useEffect(() => {
-  //   localStorage.setItem("satvik-pos-orders", JSON.stringify(orders))
-  // }, [orders])
-
-  // In createOrder and updateOrderStatus, call fetchOrders after mutation
-  function playNotificationSound() {
-    if (typeof window !== "undefined") {
-      const audio = new Audio("/notification.mp3")
-      audio.play()
-    }
+  // CRUD operations for staff
+  const addStaff = async (data: Omit<Staff, "id">) => {
+    const res = await fetch('/api/staff', { method: 'POST', body: JSON.stringify(data) })
+    const newStaff = await res.json()
+    setStaff(staff => [...staff, newStaff])
+  }
+  const updateStaff = async (id: string, data: Partial<Staff>) => {
+    const res = await fetch('/api/staff', { method: 'PUT', body: JSON.stringify({ _id: id, ...data }) })
+    const updated = await res.json()
+    setStaff(staff => staff.map(s => s._id === id ? updated : s))
+  }
+  const deleteStaff = async (id: string) => {
+    await fetch('/api/staff', { method: 'DELETE', body: JSON.stringify({ id }) })
+    setStaff(staff => staff.filter(s => s._id !== id))
   }
 
-  const createOrder = async (orderData: Partial<Order>): Promise<string> => {
+  // CRUD operations for customers
+  const addCustomer = async (data: Omit<Customer, "id">) => {
+    const res = await fetch('/api/customers', { method: 'POST', body: JSON.stringify(data) })
+    const newCustomer = await res.json()
+    setCustomers(customers => [...customers, newCustomer])
+  }
+  const updateCustomer = async (id: string, data: Partial<Customer>) => {
+    const res = await fetch('/api/customers', { method: 'PUT', body: JSON.stringify({ _id: id, ...data }) })
+    const updated = await res.json()
+    setCustomers(customers => customers.map(c => c._id === id ? updated : c))
+  }
+  const deleteCustomer = async (id: string) => {
+    await fetch('/api/customers', { method: 'DELETE', body: JSON.stringify({ id }) })
+    setCustomers(customers => customers.filter(c => c._id !== id))
+  }
+
+  // CRUD operations for orders
+  const addOrder = async (orderData: Partial<Order>) => {
+    if (offline) {
+      setPendingOrders(prev => {
+        const updated = [...prev, orderData]
+        localStorage.setItem('pendingOrders', JSON.stringify(updated))
+        toast({ title: 'Offline Mode', description: 'Order saved locally. Will sync when online.' })
+        return updated
+      })
+      return 'offline-local-order'
+    }
     const subtotal = cartTotal
     const serviceCharge = subtotal * serviceChargeRate
     const tax = (subtotal + serviceCharge) * taxRate
@@ -355,8 +304,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
       createdAt: new Date(),
       updatedAt: new Date(),
       ...orderData,
-      waiterAssigned: orderData.waiterAssigned || undefined,
-      waiterName: orderData.waiterName || undefined,
+      waiterAssigned: orderData.waiterAssigned || currentStaff?._id || undefined,
+      waiterName: orderData.waiterName || currentStaff?.name || undefined,
       customerName: orderData.customerName || undefined,
       customerPhone: orderData.customerPhone || undefined,
       customerEmail: orderData.customerEmail || undefined,
@@ -398,26 +347,6 @@ export function POSProvider({ children }: { children: ReactNode }) {
     if (!orderRes.ok) throw new Error("Order failed")
     const order = await orderRes.json()
     setOrders((prev) => [order, ...prev.filter((o) => o._id !== order._id)])
-    await fetchOrders()
-
-    // Update table status if dine-in
-    if (orderType === "dine-in" && currentTable) {
-      const tableId = Number.parseInt(currentTable.replace("T", ""))
-      updateTableStatus(tableId, "occupied")
-      assignTableToOrder(tableId, order._id)
-    }
-
-    // Add notification
-    addNotification({
-      type: "order",
-      title: "New Order",
-      message: `Order created for ${orderType}`,
-      priority: "medium",
-      orderId: order._id,
-    })
-
-    playNotificationSound()
-    clearCart()
     return order._id
   }
 
@@ -432,19 +361,6 @@ export function POSProvider({ children }: { children: ReactNode }) {
     if (!updateRes.ok) throw new Error("Order update failed")
     const updatedOrder = await updateRes.json()
     setOrders((prev) => prev.map((o) => (o._id === orderId ? updatedOrder : o)))
-    await fetchOrders()
-
-    // Add notification for status changes
-      addNotification({
-        type: "order",
-        title: "Order Status Updated",
-      message: `Order #${updatedOrder._id} is now ${status}`,
-        priority: status === "ready" ? "high" : "medium",
-        orderId,
-      })
-      if (status === "ready" || status === "completed") {
-        playNotificationSound()
-    }
   }
 
   const cancelOrder = (orderId: string, reason: string) => {
@@ -460,15 +376,9 @@ export function POSProvider({ children }: { children: ReactNode }) {
           : order,
       ),
     )
-
-    // Free up table if it was dine-in
-    const order = orders.find((o) => o._id === orderId)
-    if (order && order.orderType === "dine-in" && order.tableNumber) {
-      const tableId = Number.parseInt(order.tableNumber.replace("T", ""))
-      updateTableStatus(tableId, "cleaning")
-    }
   }
 
+  // Table management: always use real-time data
   const updateTableStatus = (tableId: number, status: Table["status"]) => {
     setTables((prev) =>
       prev.map((table) =>
@@ -479,6 +389,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
               lastCleaned: status === "available" ? new Date() : table.lastCleaned,
               currentOrder: status === "available" ? undefined : table.currentOrder,
               customerName: status === "available" ? undefined : table.customerName,
+              reservationTime: status === "available" ? undefined : table.reservationTime,
             }
           : table,
       ),
@@ -506,14 +417,6 @@ export function POSProvider({ children }: { children: ReactNode }) {
           : table,
       ),
     )
-  }
-
-  const addCustomer = (customerData: Omit<Customer, "id">) => {
-    const newCustomer: Customer = {
-      id: `CUST-${Date.now()}`,
-      ...customerData,
-    }
-    setCustomers((prev) => [newCustomer, ...prev])
   }
 
   const updateCustomerLoyalty = (customerId: string, points: number, spent: number) => {
@@ -598,8 +501,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <POSContext.Provider
-      value={{
+    <POSContext.Provider value={{
         cart,
         addToCart,
         removeFromCart,
@@ -609,7 +511,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
         itemCount,
         orders,
         orderCounter,
-        createOrder,
+      createOrder: addOrder,
         updateOrderStatus,
         cancelOrder,
         tables,
@@ -667,8 +569,14 @@ export function POSProvider({ children }: { children: ReactNode }) {
         setTaxRate,
         loyaltyPointsRate,
         setLoyaltyPointsRate,
-      }}
-    >
+      offline,
+      setOffline,
+      pendingOrders,
+      setPendingOrders,
+      addTable,
+      updateTable,
+      deleteTable,
+    }}>
       {children}
     </POSContext.Provider>
   )

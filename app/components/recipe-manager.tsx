@@ -107,94 +107,9 @@ export default function RecipeManager() {
 
   // Initialize sample recipes
   useEffect(() => {
-    const sampleRecipes: Recipe[] = [
-      {
-        id: "1",
-        name: "Butter Chicken",
-        nameHindi: "बटर चिकन",
-        category: "main-course",
-        description: "Creamy tomato-based chicken curry with rich spices",
-        preparationTime: 30,
-        cookingTime: 45,
-        servings: 4,
-        difficulty: "medium",
-        ingredients: [
-          { name: "Chicken", quantity: 500, unit: "g", costPerUnit: 200, totalCost: 100 },
-          { name: "Tomatoes", quantity: 300, unit: "g", costPerUnit: 40, totalCost: 12 },
-          { name: "Cream", quantity: 200, unit: "ml", costPerUnit: 80, totalCost: 16 },
-          { name: "Butter", quantity: 50, unit: "g", costPerUnit: 120, totalCost: 6 },
-          { name: "Spices", quantity: 20, unit: "g", costPerUnit: 300, totalCost: 6 },
-        ],
-        instructions: [
-          "Marinate chicken with yogurt and spices for 30 minutes",
-          "Grill chicken until charred",
-          "Prepare tomato gravy with onions and spices",
-          "Add grilled chicken to gravy",
-          "Finish with cream and butter",
-        ],
-        nutritionInfo: {
-          calories: 450,
-          protein: 35,
-          carbs: 15,
-          fat: 28,
-          fiber: 3,
-        },
-        costPerServing: 35,
-        sellingPrice: 320,
-        profitMargin: 814,
-        tags: ["popular", "creamy", "signature"],
-        isVeg: false,
-        spiceLevel: "medium",
-        allergens: ["dairy"],
-        chefNotes: "Ensure chicken is properly marinated for best flavor",
-        rating: 4.8,
-        timesCooked: 156,
-      },
-      {
-        id: "2",
-        name: "Paneer Butter Masala",
-        nameHindi: "पनीर बटर मसाला",
-        category: "main-course",
-        description: "Rich and creamy paneer curry with aromatic spices",
-        preparationTime: 20,
-        cookingTime: 25,
-        servings: 3,
-        difficulty: "easy",
-        ingredients: [
-          { name: "Paneer", quantity: 300, unit: "g", costPerUnit: 400, totalCost: 120 },
-          { name: "Tomatoes", quantity: 250, unit: "g", costPerUnit: 40, totalCost: 10 },
-          { name: "Cream", quantity: 150, unit: "ml", costPerUnit: 80, totalCost: 12 },
-          { name: "Butter", quantity: 40, unit: "g", costPerUnit: 120, totalCost: 4.8 },
-          { name: "Spices", quantity: 15, unit: "g", costPerUnit: 300, totalCost: 4.5 },
-        ],
-        instructions: [
-          "Cut paneer into cubes and set aside",
-          "Prepare tomato gravy with spices",
-          "Add paneer cubes to gravy",
-          "Simmer for 5-7 minutes",
-          "Finish with cream and butter",
-        ],
-        nutritionInfo: {
-          calories: 380,
-          protein: 18,
-          carbs: 12,
-          fat: 32,
-          fiber: 2,
-        },
-        costPerServing: 50,
-        sellingPrice: 280,
-        profitMargin: 460,
-        tags: ["vegetarian", "popular", "creamy"],
-        isVeg: true,
-        spiceLevel: "mild",
-        allergens: ["dairy"],
-        chefNotes: "Use fresh paneer for best texture",
-        rating: 4.6,
-        timesCooked: 89,
-      },
-    ]
-
-    setRecipes(sampleRecipes)
+    fetch('/api/recipes')
+      .then(r => r.json())
+      .then(setRecipes)
   }, [])
 
   const filteredRecipes = recipes.filter(recipe => {

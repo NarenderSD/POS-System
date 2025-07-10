@@ -10,6 +10,9 @@ import { usePOS } from "../context/pos-context"
 import { cn } from "@/lib/utils"
 import TableDetailsModal from "./table-details-modal"
 import type { Table } from "../types"
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 
 export default function EnhancedTableManagement() {
   const { tables, orders, language } = usePOS()
@@ -18,6 +21,9 @@ export default function EnhancedTableManagement() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [locationFilter, setLocationFilter] = useState("all")
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [newTable, setNewTable] = useState({ number: '', capacity: '', location: '', customerName: '', customerPhone: '', customerEmail: '' })
+  const { addTable } = usePOS()
 
   const getTableStatusColor = (status: string) => {
     switch (status) {
@@ -75,6 +81,13 @@ export default function EnhancedTableManagement() {
     setIsModalOpen(true)
   }
 
+  const handleAddTable = async (e: any) => {
+    e.preventDefault()
+    await addTable({ number: newTable.number, capacity: Number(newTable.capacity), status: 'available', location: newTable.location, customerName: newTable.customerName, customerPhone: newTable.customerPhone, customerEmail: newTable.customerEmail })
+    setShowAddDialog(false)
+    setNewTable({ number: '', capacity: '', location: '', customerName: '', customerPhone: '', customerEmail: '' })
+  }
+
   const filteredTables = tables.filter((table) => {
     const matchesSearch =
       table.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -104,45 +117,9 @@ export default function EnhancedTableManagement() {
             {language === "hi" ? "रेस्टोरेंट टेबल्स को ट्रैक और मैनेज करें" : "Track and manage restaurant tables"}
           </p>
         </div>
-
-        {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={language === "hi" ? "टेबल खोजें..." : "Search tables..."}
-              className="pl-10 w-full sm:w-64"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{language === "hi" ? "सभी स्थिति" : "All Status"}</SelectItem>
-              <SelectItem value="available">{language === "hi" ? "उपलब्ध" : "Available"}</SelectItem>
-              <SelectItem value="occupied">{language === "hi" ? "व्यस्त" : "Occupied"}</SelectItem>
-              <SelectItem value="reserved">{language === "hi" ? "आरक्षित" : "Reserved"}</SelectItem>
-              <SelectItem value="cleaning">{language === "hi" ? "सफाई" : "Cleaning"}</SelectItem>
-              <SelectItem value="out-of-order">{language === "hi" ? "खराब" : "Out of Order"}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Location" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{language === "hi" ? "सभी स्थान" : "All Locations"}</SelectItem>
-              <SelectItem value="indoor">{language === "hi" ? "इनडोर" : "Indoor"}</SelectItem>
-              <SelectItem value="outdoor">{language === "hi" ? "आउटडोर" : "Outdoor"}</SelectItem>
-              <SelectItem value="private">{language === "hi" ? "प्राइवेट" : "Private"}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Button size="lg" className="mt-2 md:mt-0" onClick={() => setShowAddDialog(true)}>
+          {language === "hi" ? "टेबल जोड़ें" : "Add Table"}
+        </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -198,6 +175,9 @@ export default function EnhancedTableManagement() {
               ? "कोई टेबल नहीं मिली। कृपया टेबल जोड़ें या फ़िल्टर बदलें।"
               : "No tables found. Please add tables or change filters."}
           </div>
+          <Button size="lg" className="mt-6" onClick={() => setShowAddDialog(true)}>
+            {language === "hi" ? "टेबल जोड़ें" : "Add Table"}
+          </Button>
         </div>
       ) : (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
@@ -207,7 +187,7 @@ export default function EnhancedTableManagement() {
 
           return (
             <Card
-              key={table.id}
+              key={table._id || table.id || table.number}
               className={cn(
                 "relative transition-all duration-300 hover:scale-105 cursor-pointer border-2",
                 getTableStatusColor(table.status),
@@ -295,6 +275,51 @@ export default function EnhancedTableManagement() {
           setSelectedTable(null)
         }}
       />
+
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{language === "hi" ? "नई टेबल जोड़ें" : "Add New Table"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddTable} className="space-y-4">
+            <div>
+              <Label>Table Number</Label>
+              <Input value={newTable.number} onChange={e => setNewTable({ ...newTable, number: e.target.value })} required />
+            </div>
+            <div>
+              <Label>Capacity</Label>
+              <Input type="number" value={newTable.capacity} onChange={e => setNewTable({ ...newTable, capacity: e.target.value })} required min={1} />
+            </div>
+            <div>
+              <Label>Location</Label>
+              <Input value={newTable.location || ''} onChange={e => setNewTable({ ...newTable, location: e.target.value })} />
+            </div>
+            <div>
+              <Label>Customer Name</Label>
+              <Input value={newTable.customerName || ''} onChange={e => setNewTable({ ...newTable, customerName: e.target.value })} />
+            </div>
+            <div>
+              <Label>Customer Phone</Label>
+              <Input value={newTable.customerPhone || ''} onChange={e => setNewTable({ ...newTable, customerPhone: e.target.value })} />
+            </div>
+            <div>
+              <Label>Customer Email</Label>
+              <Input value={newTable.customerEmail || ''} onChange={e => setNewTable({ ...newTable, customerEmail: e.target.value })} />
+            </div>
+            <Button type="submit" className="w-full">{language === "hi" ? "जोड़ें" : "Add"}</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Button
+        className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg bg-green-600 text-white hover:bg-green-700"
+        size="icon"
+        style={{ width: 56, height: 56 }}
+        onClick={() => setShowAddDialog(true)}
+      >
+        +
+        <span className="sr-only">{language === "hi" ? "टेबल जोड़ें" : "Add Table"}</span>
+      </Button>
     </div>
   )
 }

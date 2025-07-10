@@ -20,11 +20,19 @@ import AdminProducts from "./admin/products/page"
 import WaiterOrderCount from "./components/waiter-order-count"
 import SalesAnalytics from "./components/sales-analytics"
 import StaffProfile from "./components/staff-profile"
+import { useIsMobile } from "../hooks/use-mobile"
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
+import { ShoppingCart } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { usePOS } from "./context/pos-context"
 
 export default function PremiumPOSPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [view, setView] = useState("home") // "home" | "table" | "kitchen" | "inventory" | "staff" | "reports" | "expense" | "recipe" | "loyalty" | "productAdd" | "waiterOrderCount" | "salesAnalytics" | "staffProfile"
+  const isMobile = useIsMobile()
+  const { itemCount } = usePOS()
+  const [cartOpen, setCartOpen] = useState(false)
 
   let mainContent = (
     <div className="flex-1 overflow-auto">
@@ -47,11 +55,31 @@ export default function PremiumPOSPage() {
   return (
     <div className="flex h-screen bg-background">
       {/* Category Sidebar only on Home */}
-      {view === "home" && <PremiumCategorySidebar selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />}
+      {view === "home" && !isMobile && <PremiumCategorySidebar selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />}
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* PremiumHeader (untouched) */}
         <PremiumHeader />
+        {/* Mobile Cart Icon */}
+        {view === "home" && isMobile && (
+          <div className="fixed top-4 right-4 z-50">
+            <Drawer open={cartOpen} onOpenChange={setCartOpen}>
+              <DrawerTrigger asChild>
+                <Button variant="default" size="icon" className="relative shadow-lg">
+                  <ShoppingCart className="h-6 w-6" />
+                  {itemCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-green-500">
+                      {itemCount}
+                    </Badge>
+                  )}
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="max-h-[90vh]">
+                <PremiumCartSidebar />
+              </DrawerContent>
+            </Drawer>
+          </div>
+        )}
         {/* Navigation Icons Row (below header, right-aligned) */}
         <div className="flex justify-end items-center gap-2 p-2 border-b bg-background/95">
           <Button variant={view === "home" ? "default" : "ghost"} size="icon" onClick={() => setView("home")} title="Home">
@@ -96,16 +124,17 @@ export default function PremiumPOSPage() {
             </div>
         {/* Main Content Area (full width below header and icon row) */}
         {view === "home" ? (
-          <div className="flex-1 flex flex-col">
+          <div className={isMobile ? "flex-1 flex flex-col overflow-y-auto pt-20" : "flex-1 flex flex-col"}>
             {mainContent}
-              </div>
+          </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-auto">
             {mainContent}
           </div>
         )}
-        </div>
-      {view === "home" && <PremiumCartSidebar />}
+      </div>
+      {/* Desktop Cart Sidebar */}
+      {view === "home" && !isMobile && <PremiumCartSidebar />}
     </div>
   )
 }

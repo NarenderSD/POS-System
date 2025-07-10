@@ -4,6 +4,7 @@ import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 const Drawer = ({
   shouldScaleBackground = true,
@@ -48,6 +49,10 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
+      {/* Visually hidden DialogTitle for accessibility - must be FIRST child */}
+      <VisuallyHidden asChild>
+        <h2>Cart</h2>
+      </VisuallyHidden>
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
       {children}
     </DrawerPrimitive.Content>
