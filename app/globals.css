@@ -110,3 +110,44 @@ body {
   background: #16a34a;
   color: #fff;
 }
+
+@media print {
+  body * {
+    visibility: hidden !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+  .order-bill-print, .order-bill-print * {
+    visibility: visible !important;
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  .order-bill-print {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: visible !important;
+  }
+  .print\:hidden, .print\:hidden * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  html, body {
+    background: #fff !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+}

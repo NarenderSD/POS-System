@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Check, Printer } from "lucide-react"
 
@@ -11,11 +11,15 @@ import { usePOS } from "../context/pos-context"
 export default function SuccessPage() {
   const router = useRouter()
   const { cart, cartTotal, clearCart } = usePOS()
+  const [date, setDate] = useState('')
+
+  useEffect(() => {
+    setDate(new Date().toLocaleString())
+  }, [])
 
   const tax = cartTotal * 0.1
   const grandTotal = cartTotal + tax
   const receiptNumber = Math.floor(100000 + Math.random() * 900000)
-  const date = new Date().toLocaleString()
 
   useEffect(() => {
     // If there's no cart data, redirect to POS

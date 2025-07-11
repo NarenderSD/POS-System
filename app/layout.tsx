@@ -3,8 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { POSProvider } from "./context/pos-context"
-import { ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
+import ClientOnlyToast from './components/ClientOnlyToast'
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,11 +19,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gradient-to-br from-orange-50/30 to-red-50/30`}>
+    <html lang="en" className={inter.className}>
+      <body className="bg-gradient-to-br from-orange-50/30 to-red-50/30">
         <POSProvider>
           {children}
-          <ToastContainer position="top-right" autoClose={2000} hideProgressBar newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
+          <ClientOnlyToast />
         </POSProvider>
       </body>
     </html>

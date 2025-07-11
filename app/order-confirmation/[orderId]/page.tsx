@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Printer, ArrowLeft, Clock, ChefHat, Leaf, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,15 @@ export default function OrderConfirmationPage({ orderId: propOrderId, showAction
   const [loading, setLoading] = useState(true)
   const { orders, language, updateOrderStatus, cleanTable } = usePOS()
   const [isPrinting, setIsPrinting] = useState(false)
+  // Move useMemo for formattedDate to the top, before any conditional returns
+  const formattedDate = useMemo(() => {
+    if (!order?.createdAt) return "-"
+    const createdAt = typeof order?.createdAt === 'string' ? new Date(order.createdAt) : order.createdAt
+    if (typeof window !== 'undefined' && createdAt && createdAt.toLocaleString) {
+      return createdAt.toLocaleString("en-IN")
+    }
+    return "-"
+  }, [order?.createdAt])
 
   useEffect(() => {
     if (orderId) {
@@ -146,11 +155,11 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
     : null
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center w-screen h-screen">
-      <div className="w-full max-w-xl bg-white rounded-xl shadow-2xl p-0 flex flex-col items-center justify-center">
-        {/* Success Animation */}
-        <div className="text-center mb-8 mt-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4 animate-bounce">
+    <div className="order-bill-print fixed inset-0 z-[9999] bg-white flex items-start justify-center w-screen h-screen overflow-y-auto">
+      <div className="w-full max-w-xl min-h-[90vh] bg-white rounded-xl shadow-2xl p-0 flex flex-col items-start justify-start overflow-y-auto no-scrollbar py-8">
+        {/* Success Animation and Order Summary always at the top */}
+        <div className="text-center mb-8 mt-4 w-full">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4 animate-bounce mx-auto">
             <Check className="h-10 w-10 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-green-800 mb-2">
@@ -175,7 +184,7 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
               </div>
               <div className="text-right">
                 <div className="text-lg font-bold">Bill #{order.orderNumber || order._id?.slice(-6) || "-"}</div>
-                <div className="text-sm opacity-90">{date}</div>
+                <div className="text-sm opacity-90">{formattedDate}</div>
               </div>
             </CardTitle>
           </CardHeader>

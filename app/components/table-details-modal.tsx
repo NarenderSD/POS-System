@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { usePOS } from "../context/pos-context"
 import type { Table } from "../types"
 import WaiterAssignment from "./waiter-assignment"
+import { useEffect, useState } from 'react'
 
 interface TableDetailsModalProps {
   table: Table | null
@@ -203,7 +204,9 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
                     <span className="text-sm text-muted-foreground">
                       {language === "hi" ? "आरक्षण समय:" : "Reservation Time:"}
                     </span>
-                    <span className="font-medium">{table.reservationTime.toLocaleString("en-IN")}</span>
+                    <span className="font-medium">
+                      {table.reservationTime.toLocaleString("en-IN")}
+                    </span>
                   </div>
                 )}
               </CardContent>
@@ -256,7 +259,7 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
                   <div>
                     <div className="font-medium">Order #{currentOrder.orderNumber}</div>
                     <div className="text-sm text-muted-foreground">
-                      {new Date(currentOrder.createdAt).toLocaleString("en-IN")}
+                      {currentOrder.createdAt.toLocaleString("en-IN")}
                     </div>
                   </div>
                   <Badge
