@@ -4,7 +4,7 @@
 -->
 
 <div align="center">
-  <h1>🌟 Apna POS System 🌟</h1><br><h1><img src="https://img.shields.io/badge/Premium%20SaaS-Product_Level-ff69b4?style=flat-square&logo=star" height="28"/> 🌟</h1>
+  <h1>🌟 Apna POS System 🌟</h1><br><h1>🌟 <img src="https://img.shields.io/badge/Premium%20SaaS-Product_Level-ff69b4?style=flat-square&logo=star" height="28"/> 🌟</h1>
   <h3><em>⚡ The Most Animated, Professional, and Modern POS for Cafes & Restaurants ⚡</em></h3>
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=22C55E&center=true&vCenter=true&width=435&lines=Fast.+Flexible.+Future-Ready."/>
   <br/>
