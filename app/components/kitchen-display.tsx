@@ -55,7 +55,7 @@ export default function KitchenDisplay() {
   }
 
   const handleStatusUpdate = (orderId: string, newStatus: any) => {
-    updateOrderStatus(orderId, newStatus)
+    updateOrderStatus(orderId, { status: newStatus })
   }
 
   return (

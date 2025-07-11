@@ -107,9 +107,8 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
   }
 
   const handleDownloadBill = () => {
-    // Download the current order for this table
+    // Download the current order for this table as PDF
     if (!currentOrder) return
-    // Open the bill overlay or print for this order
     window.open(`/order-confirmation/${currentOrder._id}?download=1`, '_blank')
   }
 

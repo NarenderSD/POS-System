@@ -304,6 +304,12 @@ export function POSProvider({ children }: { children: ReactNode }) {
       )
     }
 
+    // Generate sequential bill number in format N000001 (no #)
+    const savedBillCounter = localStorage.getItem('billCounter')
+    let billCounter = savedBillCounter ? parseInt(savedBillCounter) : 1
+    const billNumber = `N${billCounter.toString().padStart(6, '0')}`
+    localStorage.setItem('billCounter', (billCounter + 1).toString())
+
     // Generate sequential order number
     const nextOrderNumber = orderCounter
     setOrderCounter(nextOrderNumber + 1)
@@ -346,6 +352,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
       createdAt: new Date(),
       updatedAt: new Date(),
       orderNumber: nextOrderNumber,
+      billNumber,
       ...orderData,
       waiterAssigned: orderData.waiterAssigned || currentStaff?._id || undefined,
       waiterName: orderData.waiterName || currentStaff?.name || undefined,

@@ -9,7 +9,12 @@ export async function GET() {
   const waiters = await Waiter.find({})
   const orders = await Order.find({})
   const waiterOrderCounts = waiters.map(w => {
-    const count = orders.filter(o => o.waiterAssigned?.toString() === w._id.toString()).length
+    const count = orders.filter(o =>
+      (o.waiterAssigned?.toString() === w.staffId?.toString() ||
+       o.waiterAssigned?.toString() === w._id?.toString() ||
+       o.waiterName === w.name)
+      && o.status !== 'cancelled' && o.status !== 'completed'
+    ).length
     return { ...w.toObject(), totalOrders: count }
   })
   return NextResponse.json(waiterOrderCounts)

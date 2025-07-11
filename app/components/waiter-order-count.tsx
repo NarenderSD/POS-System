@@ -7,6 +7,12 @@ export default function WaiterOrderCount() {
     fetch('/api/waiters')
       .then(r => r.json())
       .then(setWaiters)
+    const interval = setInterval(() => {
+      fetch('/api/waiters')
+        .then(r => r.json())
+        .then(setWaiters)
+    }, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   return (
