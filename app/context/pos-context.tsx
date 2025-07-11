@@ -296,6 +296,59 @@ export function POSProvider({ children }: { children: ReactNode }) {
     const tax = (subtotal + serviceCharge) * taxRate
     const total = subtotal + serviceCharge + tax
 
+    // --- CUSTOMER LOGIC: Always create or update customer in MongoDB ---
+    let customerId = orderData.customerId
+    let customerName = orderData.customerName || ''
+    let customerPhone = orderData.customerPhone || ''
+    let customerEmail = orderData.customerEmail || ''
+    let customerObj = null
+    if (customerPhone || customerEmail) {
+      // Try to find existing customer by phone/email
+      let foundCustomer = null
+      try {
+        const res = await fetch(`/api/customers?phone=${encodeURIComponent(customerPhone)}&email=${encodeURIComponent(customerEmail)}`)
+        const data = await res.json()
+        if (data && data._id) foundCustomer = data
+      } catch {}
+      if (foundCustomer) {
+        // Update customer info if needed
+        const updateRes = await fetch('/api/customers', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            _id: foundCustomer._id,
+            name: customerName || foundCustomer.name,
+            phone: customerPhone || foundCustomer.phone,
+            email: customerEmail || foundCustomer.email,
+            lastVisit: new Date(),
+          }),
+        })
+        customerObj = await updateRes.json()
+      } else {
+        // Create new customer
+        const createRes = await fetch('/api/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: customerName,
+            phone: customerPhone,
+            email: customerEmail,
+            lastVisit: new Date(),
+            loyaltyPoints: 0,
+            totalOrders: 0,
+            totalSpent: 0,
+            membershipTier: 'bronze',
+          }),
+        })
+        customerObj = await createRes.json()
+      }
+      customerId = customerObj._id
+      customerName = customerObj.name
+      customerPhone = customerObj.phone
+      customerEmail = customerObj.email
+    }
+    // --- END CUSTOMER LOGIC ---
+
     // Check for existing pending order for table (merge/append logic)
     let existingOrder = null
     if (orderType === "dine-in" && currentTable) {
@@ -320,8 +373,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
       const table = tables.find(t => t.number === currentTable)
       if (table) {
         await updateTable(table._id, {
-          customerName: orderData.customerName || undefined,
-          customerPhone: orderData.customerPhone || undefined,
+          customerName: customerName || undefined,
+          customerPhone: customerPhone || undefined,
           reservationTime: undefined,
           waiterAssigned: orderData.waiterAssigned || currentStaff?._id || undefined,
           currentOrder: undefined,
@@ -356,9 +409,10 @@ export function POSProvider({ children }: { children: ReactNode }) {
       ...orderData,
       waiterAssigned: orderData.waiterAssigned || currentStaff?._id || undefined,
       waiterName: orderData.waiterName || currentStaff?.name || undefined,
-      customerName: orderData.customerName || undefined,
-      customerPhone: orderData.customerPhone || undefined,
-      customerEmail: orderData.customerEmail || undefined,
+      customerId: customerId,
+      customerName: customerName || undefined,
+      customerPhone: customerPhone || undefined,
+      customerEmail: customerEmail || undefined,
     }
 
     let orderRes
@@ -397,6 +451,20 @@ export function POSProvider({ children }: { children: ReactNode }) {
     if (!orderRes.ok) throw new Error("Order failed")
     const order = await orderRes.json()
     setOrders((prev) => [order, ...prev.filter((o) => o._id !== order._id)])
+    // --- Update customer stats after order ---
+    if (customerObj && customerObj._id) {
+      await fetch('/api/customers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _id: customerObj._id,
+          totalOrders: (customerObj.totalOrders || 0) + 1,
+          totalSpent: (customerObj.totalSpent || 0) + total,
+          lastVisit: new Date(),
+        }),
+      })
+    }
+    // --- END customer stats update ---
     return order._id
   }
 
