@@ -1,15 +1,20 @@
 <!--
   Apna POS System - Premium, Animated, Real-Time Point of Sale for Cafes & Restaurants
-  README.md - Fully Structured, Professional, and Attractive
+  README.md - Final, Professional, Premium, and Attractive
 -->
 
 <div align="center">
-  <h1>🌟 Apna POS System 🌟</h1>
-  <h3><em>Premium, Animated, Real-Time Point of Sale for Cafes & Restaurants</em></h3>
+  <h1>🌟 Apna POS System 🌟</h1><br><h1><img src="https://img.shields.io/badge/Premium%20SaaS-Product_Level-ff69b4?style=flat-square&logo=star" height="28"/> 🌟</h1>
+  <h3><em>⚡ The Most Animated, Professional, and Modern POS for Cafes & Restaurants ⚡</em></h3>
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=22C55E&center=true&vCenter=true&width=435&lines=Fast.+Flexible.+Future-Ready."/>
   <br/>
   <a href="https://github.com/NarenderSD/POS-System"><img src="https://img.shields.io/badge/GitHub-Repo-181717?logo=github&style=for-the-badge" /></a>
   <a href="https://www.linkedin.com/in/narendersingh1/"> <img src="https://img.shields.io/badge/LinkedIn-Narender%20Singh-0A66C2?logo=linkedin&style=for-the-badge" /></a>
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Animated-UI%2FUX-22C55E?style=for-the-badge&logo=react" />
+  <img src="https://img.shields.io/badge/Offline_Mode-Supported-blueviolet?style=for-the-badge&logo=wifi" />
+  <img src="https://img.shields.io/badge/AI_Ready-Futureproof-ffb300?style=for-the-badge&logo=brain" />
+  <img src="https://img.shields.io/badge/Mobile_First-Responsive-0ea5e9?style=for-the-badge&logo=smartphone" />
 </div>
 
 ---
@@ -20,10 +25,9 @@
 </div>
 
 ```mermaid
-%% Project File/Folder Structure
 flowchart TD
-  A[Root: pos-system/]
-  A --> B[app/]
+  A[<b>pos-system/</b> <br/> <img src='https://img.icons8.com/ios-filled/24/000000/source-code.png'/>]
+  A --> B[app/ <img src='https://img.icons8.com/ios-filled/20/000000/folder-invoices--v1.png'/>]
   B --> B1[admin/]
   B1 --> B1a[products/]
   B1a --> B1a1[page.tsx]
@@ -48,7 +52,7 @@ flowchart TD
   B2f --> B2f2[route.ts]
   B --> B3[checkout/]
   B3 --> B3a[page.tsx]
-  B --> B4[components/]
+  B --> B4[components/ <img src='https://img.icons8.com/ios-filled/20/000000/react-native.png'/>]
   B4 -->|...| B4x[UI & Feature Components]
   B --> B5[context/]
   B5 --> B5a[cart-context.tsx]
@@ -65,23 +69,23 @@ flowchart TD
   B11 --> B11a[page.tsx]
   B --> B12[types/]
   B12 --> B12a[index.ts]
-  A --> C[components/]
+  A --> C[components/ <img src='https://img.icons8.com/ios-filled/20/000000/react-native.png'/>]
   C --> C1[theme-provider.tsx]
   C --> C2[ui/]
   C2 -->|...| C2x[UI Primitives]
-  A --> D[hooks/]
+  A --> D[hooks/ <img src='https://img.icons8.com/ios-filled/20/000000/hook.png'/>]
   D --> D1[use-mobile.tsx]
   D --> D2[use-toast.ts]
-  A --> E[lib/]
+  A --> E[lib/ <img src='https://img.icons8.com/ios-filled/20/000000/library.png'/>]
   E --> E1[cloudinary.ts]
   E --> E2[mongodb.ts]
   E --> E3[utils.ts]
-  A --> F[public/]
+  A --> F[public/ <img src='https://img.icons8.com/ios-filled/20/000000/public.png'/>]
   F --> F1[notification.mp3]
   F --> F2[placeholder-logo.svg]
   F --> F3[placeholder.jpg]
   F --> F4[placeholder.svg]
-  A --> G[styles/]
+  A --> G[styles/ <img src='https://img.icons8.com/ios-filled/20/000000/css3.png'/>]
   G --> G1[globals.css]
   A --> H[package.json]
   A --> I[pnpm-lock.yaml]
@@ -93,27 +97,27 @@ flowchart TD
   A --> O[.gitignore]
 ```
 
-| Path | Type | Description |
+| Path | 📁/📄 | Description |
 |------|------|-------------|
-| app/ | Folder | Main Next.js app directory |
-| app/admin/ | Folder | Admin-only pages |
-| app/api/ | Folder | All backend API endpoints |
-| app/checkout/ | Folder | Checkout and payment flow |
-| app/components/ | Folder | UI and feature components |
-| app/context/ | Folder | React Contexts for POS and cart |
-| app/data/ | Folder | Product/menu data |
-| app/order-confirmation/ | Folder | Order confirmation, bill download/print |
-| app/success/ | Folder | Success page after order completion |
-| app/types/ | Folder | TypeScript types |
-| components/ | Folder | Shared UI primitives, theme provider |
-| hooks/ | Folder | Custom React hooks |
-| lib/ | Folder | Utility libraries (MongoDB, Cloudinary, helpers) |
-| public/ | Folder | Static assets (images, sounds, logos) |
-| styles/ | Folder | Global CSS, Tailwind setup |
-| package.json | File | Project dependencies and scripts |
-| tailwind.config.ts | File | Tailwind CSS config |
-| tsconfig.json | File | TypeScript config |
-| README.md | File | Project documentation |
+| app/ | 📁 | Main Next.js app directory |
+| app/admin/ | 📁 | Admin-only pages |
+| app/api/ | 📁 | All backend API endpoints |
+| app/checkout/ | 📁 | Checkout and payment flow |
+| app/components/ | 📁 | UI and feature components |
+| app/context/ | 📁 | React Contexts for POS and cart |
+| app/data/ | 📁 | Product/menu data |
+| app/order-confirmation/ | 📁 | Order confirmation, bill download/print |
+| app/success/ | 📁 | Success page after order completion |
+| app/types/ | 📁 | TypeScript types |
+| components/ | 📁 | Shared UI primitives, theme provider |
+| hooks/ | 📁 | Custom React hooks |
+| lib/ | 📁 | Utility libraries (MongoDB, Cloudinary, helpers) |
+| public/ | 📁 | Static assets (images, sounds, logos) |
+| styles/ | 📁 | Global CSS, Tailwind setup |
+| package.json | 📄 | Project dependencies and scripts |
+| tailwind.config.ts | 📄 | Tailwind CSS config |
+| tsconfig.json | 📄 | TypeScript config |
+| README.md | 📄 | Project documentation |
 
 ---
 
@@ -123,37 +127,37 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[User] -->|Login/Select Role| B(POS Dashboard)
-  B --> C{Navigation}
-  C -->|Home| D[Product Grid]
-  C -->|Table Mgmt| E[Table Management]
-  C -->|Kitchen| F[Kitchen Display]
-  C -->|Inventory| G[Inventory Management]
-  C -->|Staff| H[Staff Management]
-  C -->|Reports| I[Reports]
-  C -->|Expense| J[Expense Tracker]
-  C -->|Recipe| K[Recipe Manager]
-  C -->|Loyalty| L[Customer Loyalty]
-  C -->|Add Product| M[Product Admin]
-  C -->|Waiter Orders| N[Waiter Order Count]
-  C -->|Sales Analytics| O[Sales Analytics]
-  C -->|Staff Profile| P[Staff Profile]
-  D --> Q[Add to Cart]
-  Q --> R[Checkout]
-  R --> S[Order Confirmation]
-  S --> T[Success Page]
-  E --> U[Assign Table]
-  F --> V[View Orders]
-  G --> W[Manage Stock]
-  H --> X[Manage Staff]
-  I --> Y[View Analytics]
-  J --> Z[Track Expenses]
-  K --> AA[Manage Recipes]
-  L --> AB[View Loyalty]
-  M --> AC[Add/Edit Products]
-  N --> AD[Waiter Stats]
-  O --> AE[Sales Charts]
-  P --> AF[Profile Details]
+  A[👤 User] -->|🔑 Login/Select Role| B[🖥️ POS Dashboard]
+  B --> C{🧭 Navigation}
+  C -->|🏠 Home| D[🛒 Product Grid]
+  C -->|🪑 Table Mgmt| E[🗂️ Table Management]
+  C -->|👨‍🍳 Kitchen| F[🍳 Kitchen Display]
+  C -->|📦 Inventory| G[📦 Inventory Management]
+  C -->|👥 Staff| H[👥 Staff Management]
+  C -->|📊 Reports| I[📊 Reports]
+  C -->|💸 Expense| J[💸 Expense Tracker]
+  C -->|📖 Recipe| K[📖 Recipe Manager]
+  C -->|🏆 Loyalty| L[🏆 Customer Loyalty]
+  C -->|➕ Add Product| M[➕ Product Admin]
+  C -->|🧑‍🍳 Waiter Orders| N[🧑‍🍳 Waiter Order Count]
+  C -->|📈 Sales Analytics| O[📈 Sales Analytics]
+  C -->|🧑‍💼 Staff Profile| P[🧑‍💼 Staff Profile]
+  D --> Q[🛒 Add to Cart]
+  Q --> R[💳 Checkout]
+  R --> S[🧾 Order Confirmation]
+  S --> T[✅ Success Page]
+  E --> U[🪑 Assign Table]
+  F --> V[🍳 View Orders]
+  G --> W[📦 Manage Stock]
+  H --> X[👥 Manage Staff]
+  I --> Y[📊 View Analytics]
+  J --> Z[💸 Track Expenses]
+  K --> AA[📖 Manage Recipes]
+  L --> AB[🏆 View Loyalty]
+  M --> AC[➕ Add/Edit Products]
+  N --> AD[🧑‍🍳 Waiter Stats]
+  O --> AE[📈 Sales Charts]
+  P --> AF[🧑‍💼 Profile Details]
   style B fill:#f9f,stroke:#333,stroke-width:2px
   style D fill:#bbf7d0,stroke:#333,stroke-width:2px
   style E fill:#fef08a,stroke:#333,stroke-width:2px
@@ -233,6 +237,21 @@ flowchart TD
 
 ---
 
+# 💡 Use Cases
+
+- **Restaurant Owners:** Full business overview, analytics, and control.
+- **Managers:** Real-time order, table, and staff management.
+- **Waiters:** Fast order taking, table assignment, and performance tracking.
+- **Kitchen Staff:** Live kitchen display, order queue, and recipe access.
+- **Cashiers:** Quick billing, payment, and receipt generation.
+- **Customers:** Loyalty points, personalized service, and digital receipts.
+- **Franchise Chains:** Multi-branch, centralized analytics.
+- **Cloud Kitchens:** Centralized order and inventory management.
+- **Cafes & QSRs:** Fast, touch-friendly, and mobile-first.
+- **Enterprise Groups:** Custom workflows, integrations, and analytics.
+
+---
+
 # 🗄️ Data Model & API
 
 - **MongoDB Models:** Orders, Tables, Staff, Customers, Products, Waiters, Loyalty, Expenses, Recipes, Inventory
@@ -240,6 +259,20 @@ flowchart TD
 - **Real-Time:** All CRUD via API, no local/demo data
 - **Offline Mode:** Orders saved locally and auto-synced
 - **Webhooks:** Ready for integrations
+
+### 📚 API Reference Table
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/orders` | GET/POST/PUT/DELETE | Manage orders |
+| `/api/tables` | GET/POST/PUT/DELETE | Manage tables |
+| `/api/staff` | GET/POST/PUT/DELETE | Manage staff |
+| `/api/customers` | GET/POST/PUT/DELETE | Manage customers |
+| `/api/products` | GET/POST/PUT/DELETE | Manage products |
+| `/api/waiters` | GET/POST/PUT/DELETE | Manage waiters |
+| `/api/expenses` | GET/POST/PUT/DELETE | Manage expenses |
+| `/api/recipes` | GET/POST/PUT/DELETE | Manage recipes |
+| `/api/inventory` | GET/POST/PUT/DELETE | Manage inventory |
 
 ---
 
@@ -381,13 +414,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history, new features, and bug fi
 
 ---
 
-# 🎉 Fun Facts
 
-- 🍕 Over 1 million orders processed in test deployments
-- 🏆 Used by 50+ cafes before public launch
-- 👨‍🍳 Inspired by real chef feedback
-- 🛡️ 100% uptime in last 6 months
-- 👨‍💻 Built with ❤️ by foodies for foodies
 
 ---
 
@@ -407,131 +434,22 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history, new features, and bug fi
 
 ---
 
-# 🛡️ License
+# 🛡️ License & Usage
 
 This project is licensed under the **MIT License**. See [LICENSE](./LICENSE) for details.
+
+> **Note:** If you want to use, sell, or monetize this project, or present it on LinkedIn or any public/commercial platform, you must credit the author and request permission via LinkedIn: [Narender Singh](https://www.linkedin.com/in/narendersingh1/). Commercial use without permission is not allowed.
 
 ---
 
 # 📞 Contact & Support
 
 - For support, issues, or feature requests, open an [issue](https://github.com/NarenderSD/POS-System/issues) or email: **narendersingh2028@gmail.com**
-- For business inquiries, contact via LinkedIn: [Narender Singh](https://www.linkedin.com/in/narendersingh1/)
+- For business/commercial inquiries or permission, contact via LinkedIn: [Narender Singh](https://www.linkedin.com/in/narendersingh1/)
 
 <div align="center">
   <h2>👑 Built by Narender Singh 👑</h2>
   <pre>
-  <a href="https://www.linkedin.com/in/narendersingh1/"><img src="https://img.shields.io/
-  badge/LinkedIn-Narender%20Singh-0A66C2?logo=linkedin&style=for-the-badge" /></a>
-
-  <h2>🍃✨ Apna POS</h2>
-  <h5><em>The Ultimate Restaurant & Cafe Management System</em></h5>
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-15.2.4-black?logo=nextdotjs&
-  style=for-the-badge" />
-  <img src="https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript&
-  style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3.x-38bdf8?logo=tailwindcss&
-  style=for-the-badge" />
-  <img src="https://img.shields.io/badge/MongoDB-6.x-47A248?logo=mongodb&
-  style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Production_Ready-Yes-brightgreen?
-  style=for-the-badge&logo=vercel" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Animated-UI%2FUX-22C55E?style=for-the-badge&
-  logo=react" />
-  <img src="https://img.shields.io/badge/Offline_Mode-Supported-blueviolet?
-  style=for-the-badge&logo=wifi" />
-  <img src="https://img.shields.io/badge/AI_Ready-Futureproof-ffb300?style=for-the-badge&
-  logo=brain" />
-  <img src="https://img.shields.io/badge/Mobile_First-Responsive-0ea5e9?
-  style=for-the-badge&logo=smartphone" />
-  <img src="https://img.shields.io/badge/Premium_SaaS-Product_Level-ff69b4?
-  style=for-the-badge&logo=star" />
-</p>
-
-> "जहाँ स्वाद, सेवा और तकनीक का संगम हो, वहाँ Apna POS है!<br>
-> हर ऑर्डर में रफ्तार, हर बिल में पारदर्शिता, हर ग्राहक में मुस्कान –<br>
-> Apna POS: आपके व्यवसाय की असली शान!<br>
-> <b>— The Crown Jewel of Restaurant Tech</b>"
-
-## 🚀 Product Overview
-
-## ✨ Premium Features
-
-## 🛠️ Tech Stack
-
-## 🧭 How it Works
-
-
-## 💡 Use Cases
-
-- **Restaurant Owners:** Full business overview, analytics, and control.
-- **Managers:** Real-time order, table, and staff management.
-- **Waiters:** Fast order taking, table assignment, and performance tracking.
-- **Kitchen Staff:** Live kitchen display, order queue, and recipe access.
-- **Cashiers:** Quick billing, payment, and receipt generation.
-- **Customers:** Loyalty points, personalized service, and digital receipts.
-- **Franchise Chains:** Multi-branch, centralized analytics.
-- **Cloud Kitchens:** Centralized order and inventory management.
-- **Cafes & QSRs:** Fast, touch-friendly, and mobile-first.
-- **Enterprise Groups:** Custom workflows, integrations, and analytics.
-
-
-## 🗄️ Data Model & API
-### 📚 API Reference Table
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/orders` | GET/POST/PUT/DELETE | Manage orders |
-| `/api/tables` | GET/POST/PUT/DELETE | Manage tables |
-| `/api/staff` | GET/POST/PUT/DELETE | Manage staff |
-| `/api/customers` | GET/POST/PUT/DELETE | Manage customers |
-| `/api/products` | GET/POST/PUT/DELETE | Manage products |
-| `/api/waiters` | GET/POST/PUT/DELETE | Manage waiters |
-| `/api/expenses` | GET/POST/PUT/DELETE | Manage expenses |
-| `/api/recipes` | GET/POST/PUT/DELETE | Manage recipes |
-| `/api/inventory` | GET/POST/PUT/DELETE | Manage inventory |
-
-
-## 📈 Business Impact
-
-## 🛡️ Security & Compliance
-
-## 🧩 Customization & Extensibility
-
-## ⚡ Performance & Scalability
-
-## 🌏 Localization & Accessibility
-
-## 🧑‍💻 Contribution
-
-## 📝 Changelog
-
-## ❓ FAQ & Troubleshooting
-
-## 🗺️ Roadmap
-
-## 🏅 Testimonials
-> _[Add your testimonial here!](#)_
-
-
-## 👥 Meet the Team
-| Narender Singh | Founder, Architect, Lead Dev | 👑 🧑‍💻 |
-
-## 🤩 Fun Facts
-- 🧑‍🍳 Inspired by real chef feedback
-- 🧑‍💻 Built with ❤️ by foodies for foodies
-
-## 🌠 Vision for the Future
-
-## 🏅 Credits
-
-## 🛡️ License
-
-## 📞 Contact & Support
-
-
 ███╗   ██╗ █████╗ ██████╗ ███████╗███╗   ██╗██████╗ ███████╗██████╗ 
 ████╗  ██║██╔══██╗██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝██╔══██╗
 ██╔██╗ ██║███████║██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██████╔╝
