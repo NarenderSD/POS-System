@@ -20,7 +20,7 @@ export default function Reports() {
             </tr>
           </thead>
           <tbody>
-            {orders.map(order => (
+            {orders.filter(order => order.status === 'completed' && order.paymentStatus === 'paid').map(order => (
               <tr key={order._id || order.id} className="border-b">
                 <td className="px-3 py-2 border font-semibold">{order.orderNumber}</td>
                 <td className="px-3 py-2 border">{order.tableNumber}</td>

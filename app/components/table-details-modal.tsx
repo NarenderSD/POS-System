@@ -100,7 +100,7 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
   const handleFinalizeBill = async () => {
     setLoading(true)
     setLocalOrderRemoved(true)
-    await finalizeBillForTable(table.id)
+    await finalizeBillForTable(table._id)
     setLoading(false)
     setLocalOrderRemoved(false)
     onClose()
@@ -224,7 +224,7 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
             <CardHeader>
               <CardTitle className="text-lg flex items-center justify-between">
                 <span>{language === "hi" ? "असाइन किया गया वेटर" : "Assigned Waiter"}</span>
-                <WaiterAssignment tableId={table.id} onAssign={handleWaiterAssign} />
+                <WaiterAssignment tableId={table._id} onAssign={handleWaiterAssign} />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -320,20 +320,20 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
           {/* Action Buttons */}
           <div className="flex space-x-2">
             {table.status === "available" && (
-              <Button onClick={() => updateTableStatus(table.id, "reserved")} className="flex-1" variant="outline">
+              <Button onClick={() => updateTableStatus(table._id, "reserved")} className="flex-1" variant="outline">
                 {language === "hi" ? "आरक्षित करें" : "Reserve"}
               </Button>
             )}
 
             {table.status === "occupied" && (
-              <Button onClick={() => updateTableStatus(table.id, "cleaning")} className="flex-1" variant="outline">
+              <Button onClick={() => updateTableStatus(table._id, "cleaning")} className="flex-1" variant="outline">
                 {language === "hi" ? "सफाई के लिए भेजें" : "Send for Cleaning"}
               </Button>
             )}
 
             {table.status === "cleaning" && (
               <Button
-                onClick={() => updateTableStatus(table.id, "available")}
+                onClick={() => updateTableStatus(table._id, "available")}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
                 {language === "hi" ? "सफाई पूर्ण" : "Cleaning Complete"}
@@ -342,7 +342,7 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
 
             {table.status === "out-of-order" && (
               <Button
-                onClick={() => updateTableStatus(table.id, "available")}
+                onClick={() => updateTableStatus(table._id, "available")}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
                 {language === "hi" ? "ठीक करें" : "Mark as Fixed"}
@@ -350,7 +350,14 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
             )}
 
             {currentOrder && (
-              <Button onClick={handleFinalizeBill} className="w-full mt-4" variant="success" disabled={loading}>
+              <Button onClick={async () => {
+                setLoading(true)
+                setLocalOrderRemoved(true)
+                await finalizeBillForTable(table._id)
+                setLoading(false)
+                setLocalOrderRemoved(false)
+                onClose()
+              }} className="w-full mt-4" variant="success" disabled={loading}>
                 {loading ? (language === "hi" ? "प्रोसेस हो रहा है..." : "Processing...") : (language === "hi" ? "बिल फाइनल करें (भुगतान)" : "Finalize Bill (Paid)")}
               </Button>
             )}

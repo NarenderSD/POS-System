@@ -64,9 +64,9 @@ export default function TableManagement() {
     }
   }
 
-  // Fix getOrderForTable to only return an order if it is not completed, cancelled, or paid
+  // Fix getOrderForTable to only return an order if it is truly active (not ready, completed, cancelled, or paid)
   const getOrderForTable = (tableNumber: string) => {
-    return orders.find((order) => order.tableNumber === tableNumber && !['completed', 'cancelled', 'paid'].includes(order.status) && order.paymentStatus !== 'paid')
+    return orders.find((order) => order.tableNumber === tableNumber && !['ready', 'completed', 'cancelled', 'paid'].includes(order.status) && order.paymentStatus !== 'paid')
   }
 
   // Fix getTableStatus to only show 'available' if there is no active order and no reservation/cleaning/out-of-order
@@ -146,7 +146,7 @@ export default function TableManagement() {
 
             return (
               <Card
-                key={table.id}
+                key={table._id}
                 className={cn(
                   "relative transition-all duration-300 hover:scale-105 cursor-pointer",
                   getTableStatusColor(status),
@@ -210,7 +210,7 @@ export default function TableManagement() {
                           size="sm"
                           variant="outline"
                           className="flex-1 text-xs bg-transparent"
-                          onClick={() => setSelectedTable(table.id)}
+                          onClick={() => setSelectedTable(table._id)}
                         >
                           {language === "hi" ? "आरक्षित करें" : "Reserve"}
                         </Button>
@@ -255,7 +255,7 @@ export default function TableManagement() {
                       size="sm"
                       variant="outline"
                       className="flex-1 text-xs bg-transparent"
-                      onClick={() => cleanTable(table.id)}
+                      onClick={() => cleanTable(table._id)}
                     >
                       {language === "hi" ? "साफ हो गया" : "Clean Done"}
                     </Button>
@@ -266,7 +266,7 @@ export default function TableManagement() {
                       size="sm"
                       variant="outline"
                       className="flex-1 text-xs bg-transparent"
-                      onClick={() => updateTableStatus(table.id, "cleaning")}
+                      onClick={() => updateTableStatus(table._id, "cleaning")}
                     >
                       {language === "hi" ? "सफाई" : "Clean"}
                     </Button>
@@ -277,19 +277,21 @@ export default function TableManagement() {
                       size="sm"
                       variant="outline"
                       className="flex-1 text-xs bg-transparent"
-                      onClick={() => updateTableStatus(table.id, "available")}
+                      onClick={() => updateTableStatus(table._id, "available")}
                     >
                       {language === "hi" ? "ठीक करें" : "Fix"}
                     </Button>
                   )}
 
                   {isOccupied && (
-                    <Button size="sm" variant="success" className="flex-1 text-xs" onClick={() => finalizeBillForTable(table._id || table.id)}>
+                    <Button size="sm" variant="success" className="flex-1 text-xs" onClick={async () => {
+                      await finalizeBillForTable(table._id)
+                    }}>
                       {language === "hi" ? "फाइनल बिल/खाली करें" : "Finalize Bill / Clear"}
                     </Button>
                   )}
                   {status !== "cleaning" && (
-                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => updateTableStatus(table.id, "cleaning")}>
+                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => updateTableStatus(table._id, "cleaning")}>
                       {language === "hi" ? "सफाई पर सेट करें" : "Set to Cleaning"}
                     </Button>
                   )}

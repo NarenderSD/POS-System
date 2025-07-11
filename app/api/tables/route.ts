@@ -11,14 +11,31 @@ export async function GET() {
 export async function POST(req) {
   await connectToDatabase()
   const data = await req.json()
-  const table = await Table.create(data)
+  // Always sanitize new table data
+  const sanitized = {
+    ...data,
+    currentOrder: undefined,
+    customerName: undefined,
+    reservationTime: undefined,
+    waiterAssigned: undefined,
+  }
+  const table = await Table.create(sanitized)
   return NextResponse.json(table)
 }
 
 export async function PUT(req) {
   await connectToDatabase()
   const data = await req.json()
-  const table = await Table.findByIdAndUpdate(data._id, data, { new: true })
+  let update = { ...data }
+  // Always blank table if status is 'available' or currentOrder is not set
+  if (data.status === 'available' || !data.currentOrder) {
+    update.status = 'available'
+    update.currentOrder = null
+    update.customerName = undefined
+    update.reservationTime = undefined
+    update.waiterAssigned = undefined
+  }
+  const table = await Table.findByIdAndUpdate(data._id, update, { new: true })
   return NextResponse.json(table)
 }
 

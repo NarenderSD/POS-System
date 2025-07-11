@@ -231,12 +231,17 @@ export function POSProvider({ children }: { children: ReactNode }) {
     }
     const res = await fetch('/api/tables', { method: 'POST', body: JSON.stringify(blankData) })
     const table = await res.json()
-    setTables(tables => [...tables, table])
+    // Force refresh from backend to avoid any stale or duplicate state
+    const freshRes = await fetch('/api/tables')
+    const freshTables = await freshRes.json()
+    setTables(freshTables)
   }
   const updateTable = async (id: string, data: Partial<Table>) => {
     const res = await fetch('/api/tables', { method: 'PUT', body: JSON.stringify({ _id: id, ...data }) })
+    if (!res.ok) throw new Error('Table update failed')
     const updated = await res.json()
     setTables(tables => tables.map(t => t._id === id ? updated : t))
+    return updated
   }
   const deleteTable = async (id: string) => {
     await fetch('/api/tables', { method: 'DELETE', body: JSON.stringify({ id }) })
@@ -388,17 +393,24 @@ export function POSProvider({ children }: { children: ReactNode }) {
     return order._id
   }
 
-  const updateOrderStatus = async (orderId: string, status: Order["status"]) => {
+  const updateOrderStatus = async (orderId: string, update: Partial<Order>) => {
     const order = orders.find((o) => o._id === orderId)
-    if (!order) return
+    if (!order) throw new Error('Order not found')
+    const updatePayload = {
+      ...order,
+      ...update,
+      updatedAt: new Date(),
+      _id: orderId,
+    }
     const updateRes = await fetch("/api/orders", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...order, status, updatedAt: new Date(), _id: orderId }),
+      body: JSON.stringify(updatePayload),
     })
     if (!updateRes.ok) throw new Error("Order update failed")
     const updatedOrder = await updateRes.json()
     setOrders((prev) => prev.map((o) => (o._id === orderId ? updatedOrder : o)))
+    return updatedOrder
   }
 
   const cancelOrder = (orderId: string, reason: string) => {
@@ -471,37 +483,65 @@ export function POSProvider({ children }: { children: ReactNode }) {
   // Add finalizeBillForTable: sets order to completed/paid, clears table, archives order
   const finalizeBillForTable = async (tableId: string) => {
     const table = tables.find(t => t._id === tableId)
-    if (!table || !table.currentOrder) return
-    const order = orders.find(o => o._id === table.currentOrder)
-    if (!order) return
-    // Optimistically update order in state for instant UI feedback
-    setOrders(prev => prev.map(o => o._id === order._id ? { ...o, status: 'completed', paymentStatus: 'paid' } : o))
-    // Optimistically blank the table in state for instant UI feedback
-    setTables(prev => prev.map(t => (t._id === tableId || t.id === tableId) ? {
+    if (!table) {
+      toast({ title: 'Error', description: 'Table not found.' })
+      return
+    }
+    let order = table.currentOrder ? orders.find(o => o._id === table.currentOrder) : null
+    // Always mark order as completed/paid, regardless of current status
+    if (order) {
+      try {
+        setOrders(prev => prev.map(o => o._id === order._id ? { ...o, status: 'completed', paymentStatus: 'paid' } : o))
+        const res = await updateOrderStatus(order._id, { status: 'completed', paymentStatus: 'paid' })
+        console.log('Order status completed+paid response:', res)
+      } catch (err) {
+        console.error('Order update error:', err)
+        toast({ title: 'Order Update Error', description: String(err) })
+        if (typeof window !== 'undefined') window.location.reload()
+        return
+      }
+    }
+    // Fallback: If any order for this table is in 'ready', forcibly blank the table
+    const stuckReadyOrder = orders.find(o => o.tableNumber === table.number && o.status === 'ready')
+    if (stuckReadyOrder) {
+      try {
+        await updateOrderStatus(stuckReadyOrder._id, { status: 'completed', paymentStatus: 'paid' })
+      } catch {}
+    }
+    // Always blank the table in state
+    setTables(prev => prev.map(t => (t._id === tableId) ? {
       ...t,
       status: 'available',
-      currentOrder: undefined,
+      currentOrder: null,
       customerName: undefined,
       customerPhone: undefined,
       reservationTime: undefined,
       waiterAssigned: undefined,
     } : t))
-    // 1. Mark order as completed and paid in backend
-    await updateOrderStatus(order._id, "completed")
-    await updateOrderStatus(order._id, "paid")
-    // 2. Blank the table in backend as well
-    await updateTable(table._id, {
-      status: "available",
-      currentOrder: undefined,
-      customerName: undefined,
-      customerPhone: undefined,
-      reservationTime: undefined,
-      waiterAssigned: undefined,
-    })
-    // Force refresh tables from backend to guarantee UI sync
-    const res = await fetch('/api/tables')
-    const freshTables = await res.json()
-    setTables(freshTables)
+    try {
+      const updateRes = await updateTable(table._id, {
+        status: "available",
+        currentOrder: null,
+        customerName: undefined,
+        customerPhone: undefined,
+        reservationTime: undefined,
+        waiterAssigned: undefined,
+      })
+      console.log('Table update response:', updateRes)
+      // Force fetch the updated table and orders from backend
+      const res = await fetch(`/api/tables`)
+      const freshTables = await res.json()
+      setTables(freshTables)
+      const ordersRes = await fetch('/api/orders')
+      const freshOrders = await ordersRes.json()
+      setOrders(freshOrders)
+      toast({ title: 'Table Cleared', description: 'Table is now available for new customer.' })
+    } catch (err) {
+      console.error('Table update error:', err)
+      toast({ title: 'Table Update Error', description: String(err) })
+      if (typeof window !== 'undefined') window.location.reload()
+      return
+    }
   }
 
   const updateCustomerLoyalty = (customerId: string, points: number, spent: number) => {
