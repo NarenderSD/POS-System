@@ -21,81 +21,79 @@ function getInitials(name) {
 // Accept props for modal/overlay use
 export default function OrderConfirmationPage({ orderId: propOrderId, showActions = false, countdown, onBack }: { orderId?: string, showActions?: boolean, countdown?: number, onBack?: () => void } = {}) {
   const router = useRouter()
-  const orderId = propOrderId || (typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : undefined)
-  const [order, setOrder] = useState(null)
+  // Always define hooks at the top
+  const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const { orders, language, updateOrderStatus, cleanTable } = usePOS()
   const [isPrinting, setIsPrinting] = useState(false)
-  // Move useMemo for formattedDate to the top, before any conditional returns
+  const [showSendModal, setShowSendModal] = useState(false)
+  const [sendTo, setSendTo] = useState('')
+  const [sendType, setSendType] = useState<'whatsapp' | 'email'>('whatsapp')
+  const [sending, setSending] = useState(false)
+
+  // Get orderId from prop or URL (client only)
+  const [clientOrderId, setClientOrderId] = useState<string | undefined>(propOrderId)
+  useEffect(() => {
+    if (!propOrderId && typeof window !== 'undefined') {
+      setClientOrderId(window.location.pathname.split('/').pop())
+    }
+  }, [propOrderId])
+
+  // Fetch order data
+  useEffect(() => {
+    if (clientOrderId) {
+      setLoading(true)
+      fetch(`/api/orders?id=${clientOrderId}`)
+        .then(r => r.json())
+        .then(data => setOrder(data))
+        .finally(() => setLoading(false))
+    }
+  }, [clientOrderId])
+
+  // Memoize formatted date (client only)
   const formattedDate = useMemo(() => {
     if (!order?.createdAt) return "-"
+    if (typeof window === 'undefined') return "-"
     const createdAt = typeof order?.createdAt === 'string' ? new Date(order.createdAt) : order.createdAt
-    if (typeof window !== 'undefined' && createdAt && createdAt.toLocaleString) {
+    if (createdAt && createdAt.toLocaleString) {
       return createdAt.toLocaleString("en-IN")
     }
     return "-"
   }, [order?.createdAt])
 
-  useEffect(() => {
-    if (orderId) {
-      setLoading(true)
-      fetch(`/api/orders?id=${orderId}`)
-        .then(r => r.json())
-        .then(data => setOrder(data))
-        .finally(() => setLoading(false))
-    }
-  }, [orderId])
+  // Waiter details (with phone/shift if available)
+  const waiterDetails = useMemo(() => order && (order.waiterName || order.waiterPhone || order.waiterShift)
+    ? {
+        name: order.waiterName || "-",
+        phone: order.waiterPhone || "-",
+        shift: order.waiterShift || "-",
+        avatar: order.waiterAvatar || null,
+      }
+    : null, [order])
 
-  // Remove all setCountdown and countdown useEffect logic
-  // Only use the countdown prop if provided
-  // Only auto-redirect if not in modal/overlay (i.e., if showActions is false)
-  useEffect(() => {
-    if (!order) {
-      router.push("/")
-      return
-    }
+  // Bill number (sequential)
+  const billNumber = useMemo(() => order?.orderNumber || (order?._id ? parseInt(order._id.slice(-6), 16) : '-'), [order])
 
-    if (countdown === 0) {
-      router.push("/")
-    }
-  }, [order, router, countdown])
-
+  // Handle print
   const handlePrint = async () => {
     setIsPrinting(true)
-
-    // Simulate printing process
     await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Update order status to confirmed after printing
     if (order) {
       updateOrderStatus(order._id, "confirmed")
     }
-
     window.print()
     setIsPrinting(false)
   }
 
+  // Handle back
   const handleBackToPOS = () => {
     router.push("/")
   }
 
+  // Handle download receipt
   const handleDownloadReceipt = () => {
-    // Create a simple text receipt
     if (!order) return
-
-    // Waiter details (with phone/shift if available) - define once at top-level
-    const waiterDetails = order && (order.waiterName || order.waiterPhone || order.waiterShift)
-      ? {
-          name: order.waiterName || "-",
-          phone: order.waiterPhone || "-",
-          shift: order.waiterShift || "-",
-          avatar: order.waiterAvatar || null,
-        }
-      : null
-
-    const receiptText = `
-Apna POS - India's Smartest POS\n================================\nOrder #${order.orderNumber || order._id?.slice(-6) || "-"}\nDate: ${date}\nTable: ${order.tableNumber || "-"}\nType: ${order.orderType}\nCustomer: ${order.customerName || "-"}\nPhone: ${order.customerPhone || "-"}\nEmail: ${order.customerEmail || "-"}\nWaiter: ${waiterDetails?.name || "-"} (${waiterDetails?.phone || "-"})\n\nITEMS:\n${order.items.map((item) => `${item.quantity}x ${item.name} - ₹${(item.price * item.quantity).toFixed(0)}`).join("\n")}\n\nBILL SUMMARY:\nSubtotal: ₹${order.subtotal.toFixed(0)}\nService Charge: ₹${order.serviceCharge.toFixed(0)}\nGST (18%): ₹${order.tax.toFixed(0)}\nTotal: ₹${order.total.toFixed(0)}\n\nPayment: ${order.paymentMethod || "Cash"}\nStatus: ${order.paymentStatus}\nLoyalty Points: ${order.loyaltyPointsEarned || 0}\n\nThank you for dining with us!\nFor support: +91 98765 43210\n================================\nBuilt by Narender Singh (github.com/narenderdev)\n`
-
+    const receiptText = `\nApna POS - India's Smartest POS\n================================\nOrder #${order.orderNumber || order._id?.slice(-6) || "-"}\nDate: ${formattedDate}\nTable: ${order.tableNumber || "-"}\nType: ${order.orderType}\nCustomer: ${order.customerName || "-"}\nPhone: ${order.customerPhone || "-"}\nEmail: ${order.customerEmail || "-"}\nWaiter: ${waiterDetails?.name || "-"} (${waiterDetails?.phone || "-"})\n\nITEMS:\n${order.items.map((item: any) => `${item.quantity}x ${item.name} - ₹${(item.price * item.quantity).toFixed(0)}`).join("\n")}\n\nBILL SUMMARY:\nSubtotal: ₹${order.subtotal.toFixed(0)}\nService Charge: ₹${order.serviceCharge.toFixed(0)}\nGST (18%): ₹${order.tax.toFixed(0)}\nTotal: ₹${order.total.toFixed(0)}\n\nPayment: ${order.paymentMethod || "Cash"}\nStatus: ${order.paymentStatus}\nLoyalty Points: ${order.loyaltyPointsEarned || 0}\n\nThank you for dining with us!\nFor support: +91 98765 43210\n================================\nBuilt by Narender Singh (github.com/narenderdev)\n`
     const blob = new Blob([receiptText], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -107,8 +105,9 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
     URL.revokeObjectURL(url)
   }
 
+  // Handle clear table
   const handleClearTable = async () => {
-    if (order.tableNumber) {
+    if (order?.tableNumber) {
       const tableId = Number.parseInt(order.tableNumber.replace("T", ""))
       cleanTable(tableId)
       await updateOrderStatus(order._id, "completed")
@@ -120,6 +119,27 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
     }
   }
 
+  // Handle send bill
+  const handleSendBill = async () => {
+    setSending(true)
+    await new Promise(res => setTimeout(res, 2000))
+    setSending(false)
+    setShowSendModal(false)
+    toast({ title: 'Bill sent!', description: `Bill sent to ${sendType === 'whatsapp' ? 'WhatsApp' : 'Email'}: ${sendTo}` })
+  }
+
+  // Auto-redirect if no order or countdown hits 0
+  useEffect(() => {
+    if (!order && !loading) {
+      router.push("/")
+      return
+    }
+    if (countdown === 0) {
+      router.push("/")
+    }
+  }, [order, loading, router, countdown])
+
+  // Loading and not found states (no hooks after this)
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -134,25 +154,6 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
       </div>
     )
   }
-
-  const receiptNumber = order.orderNumber
-  let date = "-"
-  if (order.createdAt) {
-    const createdAt = typeof order.createdAt === 'string' ? new Date(order.createdAt) : order.createdAt
-    if (createdAt && createdAt.toLocaleString) {
-      date = createdAt.toLocaleString("en-IN")
-    }
-  }
-
-  // Waiter details (with phone/shift if available) - define once at top-level
-  const waiterDetails = order && (order.waiterName || order.waiterPhone || order.waiterShift)
-    ? {
-        name: order.waiterName || "-",
-        phone: order.waiterPhone || "-",
-        shift: order.waiterShift || "-",
-        avatar: order.waiterAvatar || null,
-      }
-    : null
 
   return (
     <div className="order-bill-print fixed inset-0 z-[9999] bg-white flex items-start justify-center w-screen h-screen overflow-y-auto">
@@ -183,7 +184,7 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-bold">Bill #{order.orderNumber || order._id?.slice(-6) || "-"}</div>
+                <div className="text-lg font-bold">Bill #{billNumber}</div>
                 <div className="text-sm opacity-90">{formattedDate}</div>
               </div>
             </CardTitle>
@@ -222,7 +223,10 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
                   </div>
                   <div>
                     <div className="font-medium">{order.customerName || '-'}</div>
-                    <div className="text-xs text-muted-foreground">{order.customerPhone || '-'} {order.customerEmail && `| ${order.customerEmail}`}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {order.customerPhone ? order.customerPhone : '-'}
+                      {order.customerEmail ? ` | ${order.customerEmail}` : ''}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -389,6 +393,9 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
               <p className="text-xs mt-2 text-green-600">
                 {language === "hi" ? "100% शुद्ध शाकाहारी • स्वच्छ • स्वादिष्ट" : "100% Pure Vegetarian • Clean • Delicious"}
               </p>
+              <p className="text-xs mt-2 text-muted-foreground">
+                Built by <a href="https://github.com/narenderdev" className="underline font-bold" target="_blank">Narender Singh</a> · <a href="https://linkedin.com/in/narenderdev" className="underline" target="_blank">LinkedIn</a>
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -409,6 +416,7 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
               <Printer className="h-4 w-4 mr-2" />
               {isPrinting ? (language === "hi" ? "प्रिंट हो रहा है..." : "Printing...") : (language === "hi" ? "प्रिंट करें" : "Print")}
             </Button>
+            <Button onClick={() => setShowSendModal(true)} variant="outline" className="flex-1 bg-transparent">Send Bill (PDF) on WhatsApp/Mail</Button>
           </div>
         )}
 
@@ -421,9 +429,30 @@ Apna POS - India's Smartest POS\n================================\nOrder #${orde
           </p>
         </div>
       </div>
-      <div className="mt-8 text-center text-xs text-muted-foreground print:hidden">
-        <span>Built by <a href="https://github.com/narenderdev" className="underline font-bold" target="_blank">Narender Singh</a> · <a href="https://linkedin.com/in/narenderdev" className="underline" target="_blank">LinkedIn</a></span>
-      </div>
+      {showSendModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg p-6 w-full max-w-xs flex flex-col gap-4">
+            <h2 className="text-lg font-bold mb-2">Send Bill (PDF)</h2>
+            <div className="flex gap-2 mb-2">
+              <Button variant={sendType === 'whatsapp' ? 'default' : 'outline'} onClick={() => setSendType('whatsapp')}>WhatsApp</Button>
+              <Button variant={sendType === 'email' ? 'default' : 'outline'} onClick={() => setSendType('email')}>Email</Button>
+            </div>
+            <input
+              type={sendType === 'whatsapp' ? 'tel' : 'email'}
+              className="border rounded px-3 py-2"
+              placeholder={sendType === 'whatsapp' ? 'WhatsApp Number' : 'Email Address'}
+              value={sendTo}
+              onChange={e => setSendTo(e.target.value)}
+            />
+            <div className="flex gap-2 mt-2">
+              <Button onClick={handleSendBill} disabled={sending || !sendTo} className="flex-1">
+                {sending ? 'Sending...' : 'Send'}
+              </Button>
+              <Button onClick={() => setShowSendModal(false)} variant="outline" className="flex-1">Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

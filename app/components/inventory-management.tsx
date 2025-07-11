@@ -119,21 +119,21 @@ export default function InventoryManagement() {
         localStorage.setItem('pendingInventory', JSON.stringify(updated))
         setLoading(false)
         setIsAddDialogOpen(false)
-        setNewItem({
-          name: "",
-          category: "",
-          currentStock: 0,
-          minStock: 0,
-          maxStock: 0,
-          unit: "",
-          costPerUnit: 0,
-          supplier: "",
-        })
+      setNewItem({
+        name: "",
+        category: "",
+        currentStock: 0,
+        minStock: 0,
+        maxStock: 0,
+        unit: "",
+        costPerUnit: 0,
+        supplier: "",
+      })
         return
       }
       try {
         await fetch('/api/inventory', action)
-        setIsAddDialogOpen(false)
+      setIsAddDialogOpen(false)
         setNewItem({
           name: "",
           category: "",
@@ -178,7 +178,7 @@ export default function InventoryManagement() {
       setError(e.message)
     } finally {
       setLoading(false)
-    }
+  }
   }
 
   // Delete Inventory Item (API or queue)

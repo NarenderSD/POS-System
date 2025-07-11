@@ -159,10 +159,10 @@ export default function StaffManagement() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: newStaff.name,
+        name: newStaff.name,
             phone: newStaff.phone,
             staffId: created._id,
-            isActive: true,
+        isActive: true,
           }),
         })
       }

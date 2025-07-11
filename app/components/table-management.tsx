@@ -64,10 +64,27 @@ export default function TableManagement() {
     }
   }
 
+  // Fix getOrderForTable to only return an order if it is not completed, cancelled, or paid
   const getOrderForTable = (tableNumber: string) => {
-    return orders.find((order) => order.tableNumber === tableNumber && order.status !== "completed")
+    return orders.find((order) => order.tableNumber === tableNumber && !['completed', 'cancelled', 'paid'].includes(order.status) && order.paymentStatus !== 'paid')
   }
 
+  // Fix getTableStatus to only show 'available' if there is no active order and no reservation/cleaning/out-of-order
+  const getTableStatus = (table: any) => {
+    const currentOrder = getOrderForTable(table.number)
+    if (currentOrder) {
+      return 'occupied'
+    }
+    if (table.status === 'reserved') return 'reserved'
+    if (table.status === 'cleaning') return 'cleaning'
+    if (table.status === 'out-of-order') return 'out-of-order'
+    return 'available'
+  }
+
+  // Remove local finalizeBill and use context finalizeBillForTable
+  const { finalizeBillForTable } = usePOS()
+
+  // Reserve logic: only the selected table is reserved
   const handleReserveTable = () => {
     if (selectedTable && reservationName && reservationTime) {
       const reservationDate = new Date(reservationTime)
@@ -76,14 +93,6 @@ export default function TableManagement() {
       setReservationName("")
       setReservationTime("")
     }
-  }
-
-  const finalizeBill = (table: any) => {
-    // Mark table as cleaning, then available after delay
-    updateTableStatus(table.id, "cleaning")
-    setTimeout(() => {
-      updateTableStatus(table.id, "available")
-    }, 3000)
   }
 
   const getStatusText = (status: string) => {
@@ -132,21 +141,22 @@ export default function TableManagement() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {tables.map((table) => {
             const currentOrder = getOrderForTable(table.number)
-            const isOccupied = table.status === "occupied"
+            const status = currentOrder ? 'occupied' : getTableStatus(table)
+            const isOccupied = status === "occupied"
 
             return (
               <Card
                 key={table.id}
                 className={cn(
                   "relative transition-all duration-300 hover:scale-105 cursor-pointer",
-                  getTableStatusColor(table.status),
+                  getTableStatusColor(status),
                   "border-2",
                 )}
               >
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center justify-between text-lg">
                     <span>{table.number}</span>
-                    {getTableStatusIcon(table.status)}
+                    {getTableStatusIcon(status)}
                   </CardTitle>
                 </CardHeader>
 
@@ -156,9 +166,11 @@ export default function TableManagement() {
                       <Users className="h-3 w-3 mr-1" />
                       {table.capacity}
                     </span>
-                    <Badge variant="outline" className="text-xs">
-                      {getStatusText(table.status)}
-                    </Badge>
+                    {status === 'available' && <Badge variant="outline" className="text-xs">{getStatusText(status)}</Badge>}
+                    {status === 'occupied' && <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{getStatusText(status)}</Badge>}
+                    {status === 'reserved' && <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300">{getStatusText(status)}</Badge>}
+                    {status === 'cleaning' && <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">{getStatusText(status)}</Badge>}
+                    {status === 'out-of-order' && <Badge variant="outline" className="text-xs bg-gray-100 text-gray-700 border-gray-300">{getStatusText(status)}</Badge>}
                   </div>
 
                   {table.customerName && <div className="text-xs font-medium truncate">{table.customerName}</div>}
@@ -175,119 +187,116 @@ export default function TableManagement() {
                           "text-xs",
                           currentOrder.status === "preparing" && "bg-orange-100 text-orange-700",
                           currentOrder.status === "ready" && "bg-green-100 text-green-700",
+                          currentOrder.status === "confirmed" && "bg-blue-100 text-blue-700",
+                          currentOrder.paymentStatus === "paid" && "bg-green-200 text-green-900"
                         )}
                       >
-                        {currentOrder.status}
+                        {currentOrder.paymentStatus === "paid" ? "paid" : currentOrder.status}
                       </Badge>
                     </div>
                   )}
 
                   {table.reservationTime && (
                     <div className="text-xs text-muted-foreground">
-                      {language === "hi" ? "आरक्षण:" : "Reserved:"}{" "}
-                      {table.reservationTime.toLocaleTimeString("en-IN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {language === "hi" ? "आरक्षण:" : "Reserved:"} {table.reservationTime.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                     </div>
                   )}
 
-                  <div className="flex space-x-1 mt-2">
-                    {table.status === "available" && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 text-xs bg-transparent"
-                            onClick={() => setSelectedTable(table.id)}
-                          >
-                            {language === "hi" ? "आरक्षित करें" : "Reserve"}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              {language === "hi" ? "टेबल आरक्षण" : "Reserve Table"} {table.number}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="customerName">{language === "hi" ? "ग्राहक का नाम" : "Customer Name"}</Label>
-                              <Input
-                                id="customerName"
-                                value={reservationName}
-                                onChange={(e) => setReservationName(e.target.value)}
-                                placeholder={language === "hi" ? "नाम दर्ज करें" : "Enter name"}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="reservationTime">
-                                {language === "hi" ? "आरक्षण समय" : "Reservation Time"}
-                              </Label>
-                              <Input
-                                id="reservationTime"
-                                type="datetime-local"
-                                value={reservationTime}
-                                onChange={(e) => setReservationTime(e.target.value)}
-                              />
-                            </div>
-                            <Button onClick={handleReserveTable} className="w-full">
-                              {language === "hi" ? "आरक्षित करें" : "Reserve Table"}
-                            </Button>
+                  {/* Only show customer details input for available tables, not occupied */}
+                  {status === "available" && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 text-xs bg-transparent"
+                          onClick={() => setSelectedTable(table.id)}
+                        >
+                          {language === "hi" ? "आरक्षित करें" : "Reserve"}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>
+                            {language === "hi" ? "टेबल आरक्षण" : "Reserve Table"} {table.number}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="customerName">{language === "hi" ? "ग्राहक का नाम" : "Customer Name"}</Label>
+                            <Input
+                              id="customerName"
+                              value={reservationName}
+                              onChange={(e) => setReservationName(e.target.value)}
+                              placeholder={language === "hi" ? "नाम दर्ज करें" : "Enter name"}
+                            />
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
+                          <div>
+                            <Label htmlFor="reservationTime">
+                              {language === "hi" ? "आरक्षण समय" : "Reservation Time"}
+                            </Label>
+                            <Input
+                              id="reservationTime"
+                              type="datetime-local"
+                              value={reservationTime}
+                              onChange={(e) => setReservationTime(e.target.value)}
+                            />
+                          </div>
+                          <Button onClick={handleReserveTable} className="w-full">
+                            {language === "hi" ? "आरक्षित करें" : "Reserve Table"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
 
-                    {table.status === "cleaning" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 text-xs bg-transparent"
-                        onClick={() => cleanTable(table.id)}
-                      >
-                        {language === "hi" ? "साफ हो गया" : "Clean Done"}
-                      </Button>
-                    )}
+                  {status === "cleaning" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs bg-transparent"
+                      onClick={() => cleanTable(table.id)}
+                    >
+                      {language === "hi" ? "साफ हो गया" : "Clean Done"}
+                    </Button>
+                  )}
 
-                    {table.status === "occupied" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 text-xs bg-transparent"
-                        onClick={() => updateTableStatus(table.id, "cleaning")}
-                      >
-                        {language === "hi" ? "सफाई" : "Clean"}
-                      </Button>
-                    )}
+                  {status === "occupied" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs bg-transparent"
+                      onClick={() => updateTableStatus(table.id, "cleaning")}
+                    >
+                      {language === "hi" ? "सफाई" : "Clean"}
+                    </Button>
+                  )}
 
-                    {table.status === "out-of-order" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 text-xs bg-transparent"
-                        onClick={() => updateTableStatus(table.id, "available")}
-                      >
-                        {language === "hi" ? "ठीक करें" : "Fix"}
-                      </Button>
-                    )}
+                  {status === "out-of-order" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs bg-transparent"
+                      onClick={() => updateTableStatus(table.id, "available")}
+                    >
+                      {language === "hi" ? "ठीक करें" : "Fix"}
+                    </Button>
+                  )}
 
-                    {isOccupied && (
-                      <Button size="sm" variant="success" className="flex-1 text-xs" onClick={() => finalizeBill(table)}>
-                        {language === "hi" ? "फाइनल बिल/खाली करें" : "Finalize Bill / Clear"}
-                      </Button>
-                    )}
-                    {table.status !== "cleaning" && (
-                      <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => updateTableStatus(table.id, "cleaning")}>
-                        {language === "hi" ? "सफाई पर सेट करें" : "Set to Cleaning"}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+                  {isOccupied && (
+                    <Button size="sm" variant="success" className="flex-1 text-xs" onClick={() => finalizeBillForTable(table._id || table.id)}>
+                      {language === "hi" ? "फाइनल बिल/खाली करें" : "Finalize Bill / Clear"}
+                    </Button>
+                  )}
+                  {status !== "cleaning" && (
+                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => updateTableStatus(table.id, "cleaning")}>
+                      {language === "hi" ? "सफाई पर सेट करें" : "Set to Cleaning"}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
@@ -300,7 +309,7 @@ export default function TableManagement() {
           { status: "cleaning", label: language === "hi" ? "सफाई" : "Cleaning", color: "text-blue-600" },
           { status: "out-of-order", label: language === "hi" ? "खराब" : "Out of Order", color: "text-gray-600" },
         ].map((stat) => {
-          const count = tables.filter((table) => table.status === stat.status).length
+          const count = tables.filter((table) => getTableStatus(table) === stat.status).length
           return (
             <Card key={stat.status}>
               <CardContent className="p-4 text-center">

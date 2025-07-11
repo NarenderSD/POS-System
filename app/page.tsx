@@ -126,13 +126,13 @@ export default function PremiumPOSPage() {
         {view === "home" ? (
           <div className={isMobile ? "flex-1 flex flex-col overflow-y-auto pt-20" : "flex-1 flex flex-col"}>
             {mainContent}
-          </div>
+              </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-auto">
             {mainContent}
           </div>
         )}
-      </div>
+        </div>
       {/* Desktop Cart Sidebar */}
       {view === "home" && !isMobile && <PremiumCartSidebar />}
     </div>

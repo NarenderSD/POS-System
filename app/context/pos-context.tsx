@@ -27,6 +27,7 @@ interface POSContextType {
   assignTableToOrder: (tableId: number, orderId: string) => void
   cleanTable: (tableId: number) => void
   reserveTable: (tableId: number, customerName: string, time: Date) => void
+  finalizeBillForTable: (tableId: number) => void
 
   // Customer Management
   customers: Customer[]
@@ -212,7 +213,16 @@ export function POSProvider({ children }: { children: ReactNode }) {
 
   // CRUD operations for tables
   const addTable = async (data: Omit<Table, "id">) => {
-    const res = await fetch('/api/tables', { method: 'POST', body: JSON.stringify(data) })
+    const blankTable = {
+      ...data,
+      status: "available",
+      currentOrder: undefined,
+      customerName: undefined,
+      customerPhone: undefined,
+      reservationTime: undefined,
+      waiterAssigned: undefined,
+    }
+    const res = await fetch('/api/tables', { method: 'POST', body: JSON.stringify(blankTable) })
     const newTable = await res.json()
     setTables(tables => [...tables, newTable])
   }
@@ -390,6 +400,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
               currentOrder: status === "available" ? undefined : table.currentOrder,
               customerName: status === "available" ? undefined : table.customerName,
               reservationTime: status === "available" ? undefined : table.reservationTime,
+              waiterAssigned: status === "available" ? undefined : table.waiterAssigned,
             }
           : table,
       ),
@@ -404,6 +415,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     updateTableStatus(tableId, "available")
   }
 
+  // Fix reserveTable so it only sets the selected table to reserved, not all tables
   const reserveTable = (tableId: number, customerName: string, time: Date) => {
     setTables((prev) =>
       prev.map((table) =>
@@ -417,6 +429,27 @@ export function POSProvider({ children }: { children: ReactNode }) {
           : table,
       ),
     )
+  }
+
+  // Add finalizeBillForTable: sets order to completed/paid, clears table, archives order
+  const finalizeBillForTable = async (tableId: number) => {
+    const table = tables.find(t => t.id === tableId)
+    if (!table || !table.currentOrder) return
+    const order = orders.find(o => o._id === table.currentOrder)
+    if (!order) return
+    // 1. Mark order as completed and paid
+    await updateOrderStatus(order._id, "completed")
+    await updateOrderStatus(order._id, "paid")
+    // 2. Clear table's customer/order data and set to available
+    await updateTable(tableId, {
+      status: "available",
+      currentOrder: undefined,
+      customerName: undefined,
+      customerPhone: undefined,
+      reservationTime: undefined,
+      waiterAssigned: undefined,
+    })
+    // 3. Optionally, move order to history/archive (future feature)
   }
 
   const updateCustomerLoyalty = (customerId: string, points: number, spent: number) => {
@@ -519,6 +552,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
         assignTableToOrder,
         cleanTable,
         reserveTable,
+        finalizeBillForTable,
         customers,
         addCustomer,
         updateCustomerLoyalty,
