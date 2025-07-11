@@ -65,6 +65,12 @@ export default function EnhancedTableManagement() {
     )
   }
 
+  const getActiveOrderForTable = (tableNumber: string) => {
+    return orders.find(
+      (order) => order.tableNumber === tableNumber && !["completed", "cancelled", "paid"].includes(order.status)
+    )
+  }
+
   const getStatusText = (status: string) => {
     const statusMap = {
       available: language === "hi" ? "उपलब्ध" : "Available",
@@ -76,6 +82,14 @@ export default function EnhancedTableManagement() {
     return statusMap[status as keyof typeof statusMap] || status
   }
 
+  const getTableCardColor = (table: Table) => {
+    const currentOrder = getOrderForTable(table.number)
+    if (currentOrder && !['completed', 'cancelled'].includes(currentOrder.status)) {
+      return "bg-red-100 border-red-400 text-red-900 dark:bg-red-900 dark:border-red-700 dark:text-red-300"
+    }
+    return "bg-green-100 border-green-400 text-green-900 dark:bg-green-900 dark:border-green-700 dark:text-green-300"
+  }
+
   const handleTableClick = (table: Table) => {
     setSelectedTable(table)
     setIsModalOpen(true)
@@ -83,7 +97,7 @@ export default function EnhancedTableManagement() {
 
   const handleAddTable = async (e: any) => {
     e.preventDefault()
-    await addTable({ number: newTable.number, capacity: Number(newTable.capacity), status: 'available', location: newTable.location, customerName: newTable.customerName, customerPhone: newTable.customerPhone, customerEmail: newTable.customerEmail })
+    await addTable({ number: newTable.number, capacity: Number(newTable.capacity), location: newTable.location })
     setShowAddDialog(false)
     setNewTable({ number: '', capacity: '', location: '', customerName: '', customerPhone: '', customerEmail: '' })
   }
@@ -182,15 +196,16 @@ export default function EnhancedTableManagement() {
       ) : (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
         {filteredTables.map((table) => {
-          const currentOrder = getOrderForTable(table.number)
-          const isOccupied = table.status === "occupied"
-
+          const currentOrder = getActiveOrderForTable(table.number)
+          const isActiveOrder = !!currentOrder
           return (
             <Card
-              key={table._id || table.id || table.number}
+              key={table._id}
               className={cn(
                 "relative transition-all duration-300 hover:scale-105 cursor-pointer border-2",
-                getTableStatusColor(table.status),
+                isActiveOrder
+                  ? "bg-red-100 border-red-400 text-red-900 dark:bg-red-900 dark:border-red-700 dark:text-red-300"
+                  : "bg-green-100 border-green-400 text-green-900 dark:bg-green-900 dark:border-green-700 dark:text-green-300",
                 "hover:shadow-lg",
               )}
               onClick={() => handleTableClick(table)}
@@ -201,23 +216,21 @@ export default function EnhancedTableManagement() {
                   {getTableStatusIcon(table.status)}
                 </CardTitle>
               </CardHeader>
-
               <CardContent className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="flex items-center">
                     <Users className="h-3 w-3 mr-1" />
                     {table.capacity}
                   </span>
-                  <Badge variant="outline" className="text-xs">
-                    {getStatusText(table.status)}
-                  </Badge>
+                  {!isActiveOrder && table.status === 'available' && (
+                    <Badge variant="outline" className="text-xs">
+                      {getStatusText('available')}
+                    </Badge>
+                  )}
                 </div>
-
                 {table.location && <div className="text-xs text-muted-foreground capitalize">📍 {table.location}</div>}
-
-                {table.customerName && <div className="text-xs font-medium truncate">👤 {table.customerName}</div>}
-
-                {currentOrder && (
+                {table.customerName && !isActiveOrder && <div className="text-xs font-medium truncate">👤 {table.customerName}</div>}
+                {isActiveOrder && (
                   <div className="space-y-1">
                     <div className="text-xs font-medium">Order #{currentOrder.orderNumber}</div>
                     <div className="text-xs text-muted-foreground">
@@ -237,7 +250,6 @@ export default function EnhancedTableManagement() {
                     </Badge>
                   </div>
                 )}
-
                 {table.reservationTime && (
                   <div className="text-xs text-muted-foreground">
                     🕒{" "}
@@ -247,7 +259,6 @@ export default function EnhancedTableManagement() {
                     })}
                   </div>
                 )}
-
                 {table.waiterAssigned && <div className="text-xs text-muted-foreground">👨‍💼 Waiter assigned</div>}
               </CardContent>
             </Card>

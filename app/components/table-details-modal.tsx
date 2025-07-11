@@ -29,12 +29,19 @@ interface TableDetailsModalProps {
 }
 
 export default function TableDetailsModal({ table, isOpen, onClose }: TableDetailsModalProps) {
-  const { orders, staff, updateTableStatus, updateOrderStatus, updateTable, finalizeBillForTable, language } = usePOS()
+  const { orders, staff, updateTableStatus, updateOrderStatus, updateTable, finalizeBillForTable, language, tables } = usePOS()
+  const [loading, setLoading] = useState(false)
+  const [localOrderRemoved, setLocalOrderRemoved] = useState(false)
+
+  useEffect(() => {
+    setLoading(false)
+    setLocalOrderRemoved(false)
+  }, [isOpen])
 
   if (!table) return null
 
   const currentOrder = orders.find(
-    (order) => order.tableNumber === table.number && !["completed", "cancelled"].includes(order.status),
+    (order) => order.tableNumber === table.number && !["completed", "cancelled", "paid"].includes(order.status),
   )
 
   const assignedWaiter = staff.find((s) => s.id === table.waiterAssigned)
@@ -91,7 +98,11 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
   }
 
   const handleFinalizeBill = async () => {
+    setLoading(true)
+    setLocalOrderRemoved(true)
     await finalizeBillForTable(table.id)
+    setLoading(false)
+    setLocalOrderRemoved(false)
     onClose()
   }
 
@@ -244,7 +255,7 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
           </Card>
 
           {/* Current Order */}
-          {currentOrder && (
+          {currentOrder && !localOrderRemoved && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">{language === "hi" ? "वर्तमान ऑर्डर" : "Current Order"}</CardTitle>
@@ -338,7 +349,11 @@ export default function TableDetailsModal({ table, isOpen, onClose }: TableDetai
               </Button>
             )}
 
-            <Button onClick={handleFinalizeBill} className="w-full mt-4" variant="success">Finalize Bill (Paid)</Button>
+            {currentOrder && (
+              <Button onClick={handleFinalizeBill} className="w-full mt-4" variant="success" disabled={loading}>
+                {loading ? (language === "hi" ? "प्रोसेस हो रहा है..." : "Processing...") : (language === "hi" ? "बिल फाइनल करें (भुगतान)" : "Finalize Bill (Paid)")}
+              </Button>
+            )}
             <Button onClick={handleDownloadBill} className="w-full mt-2" variant="outline">Download Bill</Button>
 
             <Button onClick={onClose} variant="outline" className="flex-1 bg-transparent">

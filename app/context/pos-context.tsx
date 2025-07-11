@@ -27,7 +27,7 @@ interface POSContextType {
   assignTableToOrder: (tableId: number, orderId: string) => void
   cleanTable: (tableId: number) => void
   reserveTable: (tableId: number, customerName: string, time: Date) => void
-  finalizeBillForTable: (tableId: number) => void
+  finalizeBillForTable: (tableId: string) => void
 
   // Customer Management
   customers: Customer[]
@@ -211,20 +211,27 @@ export function POSProvider({ children }: { children: ReactNode }) {
     if (currentStaff) localStorage.setItem('currentStaff', JSON.stringify(currentStaff))
   }, [currentStaff])
 
+  // In POSProvider, add logic to initialize and increment orderCounter from localStorage
+  useEffect(() => {
+    const savedOrderCounter = localStorage.getItem('orderCounter')
+    if (savedOrderCounter) setOrderCounter(Number(savedOrderCounter))
+  }, [])
+
   // CRUD operations for tables
   const addTable = async (data: Omit<Table, "id">) => {
-    const blankTable = {
+    // Always create a truly blank table
+    const blankData = {
       ...data,
-      status: "available",
-      currentOrder: undefined,
       customerName: undefined,
       customerPhone: undefined,
       reservationTime: undefined,
       waiterAssigned: undefined,
+      currentOrder: undefined,
+      status: "available",
     }
-    const res = await fetch('/api/tables', { method: 'POST', body: JSON.stringify(blankTable) })
-    const newTable = await res.json()
-    setTables(tables => [...tables, newTable])
+    const res = await fetch('/api/tables', { method: 'POST', body: JSON.stringify(blankData) })
+    const table = await res.json()
+    setTables(tables => [...tables, table])
   }
   const updateTable = async (id: string, data: Partial<Table>) => {
     const res = await fetch('/api/tables', { method: 'PUT', body: JSON.stringify({ _id: id, ...data }) })
@@ -292,6 +299,26 @@ export function POSProvider({ children }: { children: ReactNode }) {
       )
     }
 
+    // Generate sequential order number
+    const nextOrderNumber = orderCounter
+    setOrderCounter(nextOrderNumber + 1)
+    localStorage.setItem('orderCounter', (nextOrderNumber + 1).toString())
+
+    // Before assigning new order, blank the table's customer/order info
+    if (orderType === "dine-in" && currentTable) {
+      const table = tables.find(t => t.number === currentTable)
+      if (table) {
+        await updateTable(table._id, {
+          customerName: orderData.customerName || undefined,
+          customerPhone: orderData.customerPhone || undefined,
+          reservationTime: undefined,
+          waiterAssigned: orderData.waiterAssigned || currentStaff?._id || undefined,
+          currentOrder: undefined,
+          status: "occupied",
+        })
+      }
+    }
+
     const orderPayload: any = {
       tableNumber: currentTable,
       items: [...cart].map((item) => ({
@@ -313,6 +340,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
       orderType,
       createdAt: new Date(),
       updatedAt: new Date(),
+      orderNumber: nextOrderNumber,
       ...orderData,
       waiterAssigned: orderData.waiterAssigned || currentStaff?._id || undefined,
       waiterName: orderData.waiterName || currentStaff?.name || undefined,
@@ -407,8 +435,17 @@ export function POSProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  // When an order is created or updated, set the table status to 'occupied' if it has an active order, otherwise 'available'
   const assignTableToOrder = (tableId: number, orderId: string) => {
-    setTables((prev) => prev.map((table) => (table.id === tableId ? { ...table, currentOrder: orderId } : table)))
+    setTables((prev) => prev.map((table) =>
+      table.id === tableId
+        ? {
+            ...table,
+            currentOrder: orderId,
+            status: "occupied",
+          }
+        : table
+    ))
   }
 
   const cleanTable = (tableId: number) => {
@@ -432,16 +469,28 @@ export function POSProvider({ children }: { children: ReactNode }) {
   }
 
   // Add finalizeBillForTable: sets order to completed/paid, clears table, archives order
-  const finalizeBillForTable = async (tableId: number) => {
-    const table = tables.find(t => t.id === tableId)
+  const finalizeBillForTable = async (tableId: string) => {
+    const table = tables.find(t => t._id === tableId)
     if (!table || !table.currentOrder) return
     const order = orders.find(o => o._id === table.currentOrder)
     if (!order) return
-    // 1. Mark order as completed and paid
+    // Optimistically update order in state for instant UI feedback
+    setOrders(prev => prev.map(o => o._id === order._id ? { ...o, status: 'completed', paymentStatus: 'paid' } : o))
+    // Optimistically blank the table in state for instant UI feedback
+    setTables(prev => prev.map(t => (t._id === tableId || t.id === tableId) ? {
+      ...t,
+      status: 'available',
+      currentOrder: undefined,
+      customerName: undefined,
+      customerPhone: undefined,
+      reservationTime: undefined,
+      waiterAssigned: undefined,
+    } : t))
+    // 1. Mark order as completed and paid in backend
     await updateOrderStatus(order._id, "completed")
     await updateOrderStatus(order._id, "paid")
-    // 2. Clear table's customer/order data and set to available
-    await updateTable(tableId, {
+    // 2. Blank the table in backend as well
+    await updateTable(table._id, {
       status: "available",
       currentOrder: undefined,
       customerName: undefined,
@@ -449,7 +498,10 @@ export function POSProvider({ children }: { children: ReactNode }) {
       reservationTime: undefined,
       waiterAssigned: undefined,
     })
-    // 3. Optionally, move order to history/archive (future feature)
+    // Force refresh tables from backend to guarantee UI sync
+    const res = await fetch('/api/tables')
+    const freshTables = await res.json()
+    setTables(freshTables)
   }
 
   const updateCustomerLoyalty = (customerId: string, points: number, spent: number) => {
