@@ -96,33 +96,40 @@ export default function OrderConfirmationPage({ orderId: propOrderId, showAction
   const handleDownloadReceipt = async () => {
     if (!order) return
     if (billRef.current) {
+      // Find the BillContent node inside billRef
+      const billNode = billRef.current.querySelector('.mb-6.print\\:shadow-none.w-full')
+      if (!billNode) return
       const html2pdf = (await import('html2pdf.js')).default
       // Clone the bill node and clean up overlay/fixed styles for PDF
-      const billNode = billRef.current.cloneNode(true) as HTMLElement
-      billNode.style.position = 'static'
-      billNode.style.left = 'unset'
-      billNode.style.top = 'unset'
-      billNode.style.width = '800px'
-      billNode.style.maxWidth = '800px'
-      billNode.style.background = '#fff'
-      billNode.style.boxShadow = '0 0 24px 0 #e5e7eb'
-      billNode.style.zIndex = '1'
-      billNode.style.margin = '0 auto'
-      billNode.style.padding = '32px'
-      billNode.style.borderRadius = '16px'
-      // Remove overlay classes if present
-      billNode.classList.remove('fixed', 'inset-0', 'z-[9999]', 'overflow-y-auto', 'order-bill-print')
-      billNode.classList.add('order-bill-print') // keep print style
+      const billClone = billNode.cloneNode(true)
+      // Remove all margin and padding from the clone for PDF
+      billClone.style.margin = '0'
+      billClone.style.padding = '12px'
+      billClone.style.width = '600px'
+      billClone.style.maxWidth = '600px'
+      billClone.style.background = '#fff'
+      billClone.style.boxShadow = 'none'
+      billClone.style.zIndex = '1'
+      billClone.style.borderRadius = '0'
+      billClone.style.fontSize = '13px'
       // Remove any print:hidden elements from the clone
-      billNode.querySelectorAll('.print\\:hidden, .print\\:hidden *').forEach(el => el.remove())
+      billClone.querySelectorAll('.print\\:hidden, .print\\:hidden *').forEach(el => el.remove())
+      // Wrap in a container to center vertically for PDF
+      const wrapper = document.createElement('div')
+      wrapper.style.display = 'flex'
+      wrapper.style.alignItems = 'center'
+      wrapper.style.justifyContent = 'center'
+      wrapper.style.height = '100%'
+      wrapper.style.width = '100%'
+      wrapper.appendChild(billClone)
       html2pdf().set({
-        margin: [8, 0, 8, 0],
+        margin: 0,
         filename: `bill-${billNumber}.pdf`,
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 1.1, useCORS: true, backgroundColor: '#fff', windowWidth: 800 },
+        image: { type: 'png', quality: 1 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#fff', windowWidth: 600 },
         jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
-      }).from(billNode).save()
+      }).from(wrapper).save()
     }
   }
 
@@ -196,7 +203,6 @@ export default function OrderConfirmationPage({ orderId: propOrderId, showAction
       {/* Main visible bill content and action buttons (always visible) */}
       <div ref={billRef} className="order-bill-print fixed inset-0 z-[9999] bg-white flex items-start justify-center w-screen h-screen overflow-y-auto">
         <div className="w-full max-w-xl min-h-[90vh] bg-white rounded-xl shadow-2xl p-0 flex flex-col items-center justify-start overflow-y-auto no-scrollbar py-8">
-          {/* Bill content (same as PDF, but with action buttons) */}
           <div className="text-center mb-8 mt-4 w-full">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4 mx-auto">
               <Check className="h-10 w-10 text-green-600" />
@@ -204,228 +210,7 @@ export default function OrderConfirmationPage({ orderId: propOrderId, showAction
             <h1 className="text-3xl font-bold text-green-800 mb-2">{language === "hi" ? "ऑर्डर सफल!" : "Order Successful!"}</h1>
             <p className="text-green-600">{language === "hi" ? "आपका ऑर्डर प्राप्त हो गया है" : "Your order has been received"}</p>
           </div>
-          <Card className="mb-6 print:shadow-none w-full">
-            <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-500 text-white print:bg-white print:text-black rounded-t-xl">
-              <CardTitle className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold flex items-center">
-                    <Leaf className="h-6 w-6 mr-2" />
-                    Apna POS
-                  </div>
-                  <div className="text-sm opacity-90">
-                    India's Smartest POS
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold">Bill {billNumber}</div>
-                  <div className="text-sm opacity-90">{formattedDate}</div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              {/* Order Info */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                    {language === "hi" ? "ऑर्डर प्रकार" : "Order Type"}
-                  </h3>
-                  <Badge variant="outline" className="capitalize">
-                    {order.orderType}
-                  </Badge>
-                </div>
-                {order.tableNumber && (
-                  <div>
-                    <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                      {language === "hi" ? "टेबल" : "Table"}
-                    </h3>
-                    <Badge variant="outline">{order.tableNumber}</Badge>
-                  </div>
-                )}
-                {/* Customer Details Section (always show, with fallbacks) */}
-                <div className="col-span-2">
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                    {language === "hi" ? "ग्राहक विवरण" : "Customer Details"}
-                  </h3>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700">
-                      {order.customerAvatar ? (
-                        <img src={order.customerAvatar} alt={order.customerName} className="w-8 h-8 rounded-full" />
-                      ) : (
-                        getInitials(order.customerName)
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-medium">{order.customerName || '-'}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {order.customerPhone ? order.customerPhone : '-'}
-                        {order.customerEmail ? ` | ${order.customerEmail}` : ''}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Special Instructions Section (always show if present) */}
-                {order.specialInstructions && (
-                  <div className="col-span-2 mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <div className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
-                      {language === "hi" ? "विशेष निर्देश:" : "Special Instructions:"}
-                    </div>
-                    <div className="text-sm text-yellow-700 dark:text-yellow-400">
-                      {order.specialInstructions}
-                    </div>
-                  </div>
-                )}
-                {/* Waiter Details Section (always show, with fallback) */}
-                <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                    {language === "hi" ? "वेटर" : "Waiter"}
-                  </h3>
-                  {waiterDetails ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-700">
-                        {waiterDetails.avatar ? (
-                          <img src={waiterDetails.avatar} alt={waiterDetails.name} className="w-8 h-8 rounded-full" />
-                        ) : (
-                          getInitials(waiterDetails.name)
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium">{waiterDetails.name}</div>
-                        <div className="text-xs text-muted-foreground">{waiterDetails.phone} {waiterDetails.shift && `| ${waiterDetails.shift}`}</div>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="font-medium">-</p>
-                  )}
-                </div>
-                {order.estimatedTime && (
-                  <div>
-                    <h3 className="font-semibold text-sm text-muted-foreground mb-1">
-                      {language === "hi" ? "अनुमानित समय" : "Estimated Time"}
-                    </h3>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1 text-green-500" />
-                      <span className="font-medium">{order.estimatedTime} minutes</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <Separator className="my-4" />
-              {/* Order Items */}
-              <div className="space-y-3 mb-6">
-                <h3 className="font-semibold flex items-center">
-                  <ChefHat className="h-4 w-4 mr-2" />
-                  {language === "hi" ? "ऑर्डर आइटम" : "Order Items"}
-                </h3>
-                {(order.items || []).length === 0 ? (
-                  <div className="text-center text-muted-foreground py-4">No items in this order.</div>
-                ) : (
-                  (order.items || []).map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center">
-                          <Leaf className="h-3 w-3 text-green-500 mr-1" />
-                          <span className="font-medium">
-                            {language === "hi" && item.nameHindi ? item.nameHindi : item.name}
-                          </span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          ₹{item.price} × {item.quantity}
-                        </div>
-                        {item.customizations && item.customizations.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {item.customizations.map((customization, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {customization}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                        {item.specialInstructions && (
-                          <div className="text-xs text-muted-foreground mt-1">Note: {item.specialInstructions}</div>
-                        )}
-                      </div>
-                      <div className="font-semibold text-green-600">₹{(item.price * item.quantity).toFixed(0)}</div>
-                    </div>
-                  ))
-                )}
-              </div>
-              <Separator className="my-4" />
-              {/* Bill Summary */}
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>{language === "hi" ? "उप-योग" : "Subtotal"}</span>
-                  <span>₹{(order.subtotal ?? 0).toFixed(0)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{language === "hi" ? "सेवा शुल्क (10%)" : "Service Charge (10%)"}</span>
-                  <span>₹{(order.serviceCharge ?? 0).toFixed(0)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{language === "hi" ? "जीएसटी (18%)" : "GST (18%)"}</span>
-                  <span>₹{(order.tax ?? 0).toFixed(0)}</span>
-                </div>
-                {order.discount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>{language === "hi" ? "छूट" : "Discount"}</span>
-                    <span>-₹{(order.discount ?? 0).toFixed(0)}</span>
-                  </div>
-                )}
-                <Separator />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>{language === "hi" ? "कुल राशि" : "Total Amount"}</span>
-                  <span className="text-green-600">
-                    ₹<AnimatedCounter value={Math.round(order.total ?? 0)} />
-                  </span>
-                </div>
-              </div>
-              {/* Payment Info */}
-              <div className="mt-6 p-4 bg-green-50 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">{language === "hi" ? "भुगतान विधि" : "Payment Method"}</span>
-                  <Badge className="capitalize bg-green-100 text-green-800">{order.paymentMethod || "Cash"}</Badge>
-                </div>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="font-medium">{language === "hi" ? "भुगतान स्थिति" : "Payment Status"}</span>
-                  <Badge variant={order.paymentStatus === "paid" ? "default" : "secondary"} className="bg-green-500">
-                    {order.paymentStatus === "paid"
-                      ? language === "hi"
-                        ? "भुगतान हो गया"
-                        : "Paid"
-                      : language === "hi"
-                        ? "लंबित"
-                        : "Pending"}
-                  </Badge>
-                </div>
-                {order.loyaltyPointsEarned && (
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-medium">{language === "hi" ? "लॉयल्टी पॉइंट्स" : "Loyalty Points Earned"}</span>
-                    <Badge variant="outline" className="text-green-600">
-                      +{order.loyaltyPointsEarned} points
-                    </Badge>
-                  </div>
-                )}
-              </div>
-              {/* Footer */}
-              <div className="mt-6 text-center text-sm text-muted-foreground">
-                <p className="flex items-center justify-center mb-2">
-                  <Leaf className="h-4 w-4 mr-1 text-green-500" />
-                  {language === "hi" ? "धन्यवाद! फिर से आने के लिए" : "Thank you for choosing pure vegetarian!"}
-                </p>
-                <p className="mt-1">
-                  {language === "hi" ? "सहायता के लिए: +91 98765 43210" : "For support: +91 98765 43210"}
-                </p>
-                <p className="text-xs mt-2 text-green-600">
-                  {language === "hi" ? "100% शुद्ध शाकाहारी • स्वच्छ • स्वादिष्ट" : "100% Pure Vegetarian • Clean • Delicious"}
-                </p>
-                <p className="text-xs mt-2 text-muted-foreground">
-                  Built by <a href="https://www.linkedin.com/in/narendersingh1/" className="underline font-bold" target="_blank">Narender Singh</a>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <BillContent order={order} language={language} waiterDetails={waiterDetails} billNumber={billNumber} formattedDate={formattedDate} />
           {/* Action Buttons (always visible) */}
           {showActionButtons && (
             <div className="flex flex-col sm:flex-row gap-4 print:hidden mt-4 w-full">
@@ -456,6 +241,234 @@ export default function OrderConfirmationPage({ orderId: propOrderId, showAction
         </div>
       </div>
     </>
+  )
+}
+
+// 1. Move the Card with bill details into a new BillContent component inside this file.
+function BillContent({ order, language, waiterDetails, billNumber, formattedDate }) {
+  return (
+    <Card className="mb-6 print:shadow-none w-full">
+      <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-500 text-white print:bg-white print:text-black rounded-t-xl">
+        <CardTitle className="flex items-center justify-between">
+          <div>
+            <div className="text-2xl font-bold flex items-center">
+              <Leaf className="h-6 w-6 mr-2" />
+              Apna POS
+            </div>
+            <div className="text-sm opacity-90">
+              India's Smartest POS
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-bold">Bill {billNumber}</div>
+            <div className="text-sm opacity-90">{formattedDate}</div>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        {/* Order Info */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+              {language === "hi" ? "ऑर्डर प्रकार" : "Order Type"}
+            </h3>
+            <Badge variant="outline" className="capitalize">
+              {order.orderType}
+            </Badge>
+          </div>
+          {order.tableNumber && (
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+                {language === "hi" ? "टेबल" : "Table"}
+              </h3>
+              <Badge variant="outline">{order.tableNumber}</Badge>
+            </div>
+          )}
+          {/* Customer Details Section (always show, with fallbacks) */}
+          <div className="col-span-2">
+            <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+              {language === "hi" ? "ग्राहक विवरण" : "Customer Details"}
+            </h3>
+            <div className="flex items-center space-x-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700">
+                {order.customerAvatar ? (
+                  <img src={order.customerAvatar} alt={order.customerName} className="w-8 h-8 rounded-full" />
+                ) : (
+                  getInitials(order.customerName)
+                )}
+              </div>
+              <div>
+                <div className="font-medium">{order.customerName || '-'}</div>
+                <div className="text-xs text-muted-foreground">
+                  {order.customerPhone ? order.customerPhone : '-'}
+                  {order.customerEmail ? ` | ${order.customerEmail}` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Special Instructions Section (always show if present) */}
+          {order.specialInstructions && (
+            <div className="col-span-2 mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <div className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
+                {language === "hi" ? "विशेष निर्देश:" : "Special Instructions:"}
+              </div>
+              <div className="text-sm text-yellow-700 dark:text-yellow-400">
+                {order.specialInstructions}
+              </div>
+            </div>
+          )}
+          {/* Waiter Details Section (always show, with fallback) */}
+          <div>
+            <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+              {language === "hi" ? "वेटर" : "Waiter"}
+            </h3>
+            {waiterDetails ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-700">
+                  {waiterDetails.avatar ? (
+                    <img src={waiterDetails.avatar} alt={waiterDetails.name} className="w-8 h-8 rounded-full" />
+                  ) : (
+                    getInitials(waiterDetails.name)
+                  )}
+                </div>
+                <div>
+                  <div className="font-medium">{waiterDetails.name}</div>
+                  <div className="text-xs text-muted-foreground">{waiterDetails.phone} {waiterDetails.shift && `| ${waiterDetails.shift}`}</div>
+                </div>
+              </div>
+            ) : (
+              <p className="font-medium">-</p>
+            )}
+          </div>
+          {order.estimatedTime && (
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground mb-1">
+                {language === "hi" ? "अनुमानित समय" : "Estimated Time"}
+              </h3>
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1 text-green-500" />
+                <span className="font-medium">{order.estimatedTime} minutes</span>
+              </div>
+            </div>
+          )}
+        </div>
+        <Separator className="my-4" />
+        {/* Order Items */}
+        <div className="space-y-3 mb-6">
+          <h3 className="font-semibold flex items-center">
+            <ChefHat className="h-4 w-4 mr-2" />
+            {language === "hi" ? "ऑर्डर आइटम" : "Order Items"}
+          </h3>
+          {(order.items || []).length === 0 ? (
+            <div className="text-center text-muted-foreground py-4">No items in this order.</div>
+          ) : (
+            (order.items || []).map((item, index) => (
+              <div
+                key={index}
+                className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center">
+                    <Leaf className="h-3 w-3 text-green-500 mr-1" />
+                    <span className="font-medium">
+                      {language === "hi" && item.nameHindi ? item.nameHindi : item.name}
+                    </span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    ₹{item.price} × {item.quantity}
+                  </div>
+                  {item.customizations && item.customizations.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {item.customizations.map((customization, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          {customization}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  {item.specialInstructions && (
+                    <div className="text-xs text-muted-foreground mt-1">Note: {item.specialInstructions}</div>
+                  )}
+                </div>
+                <div className="font-semibold text-green-600">₹{(item.price * item.quantity).toFixed(0)}</div>
+              </div>
+            ))
+          )}
+        </div>
+        <Separator className="my-4" />
+        {/* Bill Summary */}
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span>{language === "hi" ? "उप-योग" : "Subtotal"}</span>
+            <span>₹{(order.subtotal ?? 0).toFixed(0)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>{language === "hi" ? "सेवा शुल्क (10%)" : "Service Charge (10%)"}</span>
+            <span>₹{(order.serviceCharge ?? 0).toFixed(0)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>{language === "hi" ? "जीएसटी (18%)" : "GST (18%)"}</span>
+            <span>₹{(order.tax ?? 0).toFixed(0)}</span>
+          </div>
+          {order.discount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>{language === "hi" ? "छूट" : "Discount"}</span>
+              <span>-₹{(order.discount ?? 0).toFixed(0)}</span>
+            </div>
+          )}
+          <Separator />
+          <div className="flex justify-between font-bold text-lg">
+            <span>{language === "hi" ? "कुल राशि" : "Total Amount"}</span>
+            <span className="text-green-600">
+              ₹<AnimatedCounter value={Math.round(order.total ?? 0)} />
+            </span>
+          </div>
+        </div>
+        {/* Payment Info */}
+        <div className="mt-6 p-4 bg-green-50 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span className="font-medium">{language === "hi" ? "भुगतान विधि" : "Payment Method"}</span>
+            <Badge className="capitalize bg-green-100 text-green-800">{order.paymentMethod || "Cash"}</Badge>
+          </div>
+          <div className="flex justify-between items-center mt-2">
+            <span className="font-medium">{language === "hi" ? "भुगतान स्थिति" : "Payment Status"}</span>
+            <Badge variant={order.paymentStatus === "paid" ? "default" : "secondary"} className="bg-green-500">
+              {order.paymentStatus === "paid"
+                ? language === "hi"
+                  ? "भुगतान हो गया"
+                  : "Paid"
+                : language === "hi"
+                  ? "लंबित"
+                  : "Pending"}
+            </Badge>
+          </div>
+          {order.loyaltyPointsEarned && (
+            <div className="flex justify-between items-center mt-2">
+              <span className="font-medium">{language === "hi" ? "लॉयल्टी पॉइंट्स" : "Loyalty Points Earned"}</span>
+              <Badge variant="outline" className="text-green-600">
+                +{order.loyaltyPointsEarned} points
+              </Badge>
+            </div>
+          )}
+        </div>
+        {/* Footer */}
+        <div className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="flex items-center justify-center mb-2">
+            <Leaf className="h-4 w-4 mr-1 text-green-500" />
+            {language === "hi" ? "धन्यवाद! फिर से आने के लिए" : "Thank you for choosing pure vegetarian!"}
+          </p>
+          <p className="mt-1">
+            {language === "hi" ? "सहायता के लिए: +91 98765 43210" : "For support: +91 98765 43210"}
+          </p>
+          <p className="text-xs mt-2 text-green-600">
+            {language === "hi" ? "100% शुद्ध शाकाहारी • स्वच्छ • स्वादिष्ट" : "100% Pure Vegetarian • Clean • Delicious"}
+          </p>
+          <p className="text-xs mt-2 text-muted-foreground">
+            Built by <a href="https://www.linkedin.com/in/narendersingh1/" className="underline font-bold" target="_blank">Narender Singh</a>
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
