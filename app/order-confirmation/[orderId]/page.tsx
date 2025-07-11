@@ -97,14 +97,32 @@ export default function OrderConfirmationPage({ orderId: propOrderId, showAction
     if (!order) return
     if (billRef.current) {
       const html2pdf = (await import('html2pdf.js')).default
+      // Clone the bill node and clean up overlay/fixed styles for PDF
+      const billNode = billRef.current.cloneNode(true) as HTMLElement
+      billNode.style.position = 'static'
+      billNode.style.left = 'unset'
+      billNode.style.top = 'unset'
+      billNode.style.width = '800px'
+      billNode.style.maxWidth = '800px'
+      billNode.style.background = '#fff'
+      billNode.style.boxShadow = '0 0 24px 0 #e5e7eb'
+      billNode.style.zIndex = '1'
+      billNode.style.margin = '0 auto'
+      billNode.style.padding = '32px'
+      billNode.style.borderRadius = '16px'
+      // Remove overlay classes if present
+      billNode.classList.remove('fixed', 'inset-0', 'z-[9999]', 'overflow-y-auto', 'order-bill-print')
+      billNode.classList.add('order-bill-print') // keep print style
+      // Remove any print:hidden elements from the clone
+      billNode.querySelectorAll('.print\\:hidden, .print\\:hidden *').forEach(el => el.remove())
       html2pdf().set({
-        margin: [0, 0],
+        margin: [8, 0, 8, 0],
         filename: `bill-${billNumber}.pdf`,
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#fff' },
+        html2canvas: { scale: 1.1, useCORS: true, backgroundColor: '#fff', windowWidth: 800 },
         jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
-      }).from(billRef.current).save()
+      }).from(billNode).save()
     }
   }
 
@@ -403,7 +421,7 @@ export default function OrderConfirmationPage({ orderId: propOrderId, showAction
                   {language === "hi" ? "100% शुद्ध शाकाहारी • स्वच्छ • स्वादिष्ट" : "100% Pure Vegetarian • Clean • Delicious"}
                 </p>
                 <p className="text-xs mt-2 text-muted-foreground">
-                  Built by <a href="https://github.com/narenderdev" className="underline font-bold" target="_blank">Narender Singh</a> · <a href="https://linkedin.com/in/narenderdev" className="underline" target="_blank">LinkedIn</a>
+                  Built by <a href="https://www.linkedin.com/in/narendersingh1/" className="underline font-bold" target="_blank">Narender Singh</a>
                 </p>
               </div>
             </CardContent>
